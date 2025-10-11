@@ -15,7 +15,7 @@ from todolist.exceptions import (
     TaskLimitExceededError,
     ValidationError,
 )
-from todolist.models import Project, Task
+from todolist.models import Project, Task, TaskStatus
 from todolist.repository import IProjectRepository
 
 class ProjectService:
@@ -103,6 +103,14 @@ class ProjectService:
         """Delete a project by its ID."""
         self._repo.delete_project(project_id)
 
+    def change_task_status(self, project_id: int, task_id: int,
+                           new_status_str: str) -> Task:
+        """Change the status of a task after validating."""
+        if new_status_str not in ("todo", "doing", "done"):
+            raise ValidationError("Task status must be either"
+                                  " 'todo', 'doing' or 'done'.")
 
+        new_status: TaskStatus = new_status_str
+        return self._repo.update_task_status(project_id, task_id, new_status)
 
 

@@ -18,6 +18,7 @@ class Cli:
         self._commands = {
             "create_project": self._create_project,
             "add_task": self._add_task,
+            "set_task_status": self._set_task_status,
             "edit_project": self._edit_project,
             "delete_project": self._delete_project,
             "list_projects": self._list_projects,
@@ -30,6 +31,7 @@ class Cli:
         print("Available commands:")
         print("  create_project <name> <description>")
         print("  add_task <project_id> <title> <description> [deadline:YYYY-MM-DD]")
+        print("  set_task_status <project_id> <task_id> <todo|doing|done>")
         print("  edit_project <project_id> <new_title> <new_description>")
         print("  delete_project <project_id>")
         print("  list_projects")
@@ -115,6 +117,25 @@ class Cli:
 
         self._service.delete_project(project_id)
         print(f"Deleted project ID {project_id} and all of its tasks.")
+
+    def _set_task_status(self, args: list[str]) -> None:
+        """Handles the set_task_status command."""
+        if len(args) != 3:
+            print("Invalid number of arguments.")
+            return
+
+        project_id_str, task_id_str, new_status = args
+        try:
+            project_id = int(project_id_str)
+            task_id = int(task_id_str)
+        except ValueError:
+            print("Invalid project ID or task ID; they must be integers.")
+            return
+
+        task = self._service.change_task_status(project_id, task_id, new_status)
+        print(f"Changed status of task '{task.title}' with "
+              f"ID {task.id} to '{new_status}'.")
+
 
     def run(self) -> None:
         """Main loop for the CLI"""

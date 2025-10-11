@@ -11,7 +11,7 @@ from collections.abc import Sequence
 from datetime import datetime
 
 from todolist.exceptions import EntityDoesNotExistError
-from todolist.models import Project, Task
+from todolist.models import Project, Task, TaskStatus
 
 class IProjectRepository(ABC):
     """Interface for a project and task repository."""
@@ -54,7 +54,11 @@ class IProjectRepository(ABC):
         """Creates a new task within a project."""
         pass
 
-    # More abstract methods will be added later as needed
+    @abstractmethod
+    def update_task_status(self, project_id: int,
+                           task_id: int, new_status: TaskStatus) -> Task:
+        """Finds a task by its ID and updates its status."""
+        pass
 
 class InMemoryProjectRepository(IProjectRepository):
     """In-memory implementation of a project repository."""
@@ -110,6 +114,23 @@ class InMemoryProjectRepository(IProjectRepository):
 
         self._projects[project_id].tasks.append(task)
         return copy.deepcopy(task)
+
+    def update_task_status(self, project_id: int,
+                           task_id: int, new_status: TaskStatus) -> Task:
+        project = self.find_project_by_id(project_id)
+
+        task_to_update = None
+        for task in project.tasks:
+            if task.id == task_id:
+                task_to_update = task
+                break
+
+        if task_to_update is None:
+            raise EntityDoesNotExistError(entity_name="Task", entity_id=task_id)
+
+        task_to_update.status = new_status
+        return copy.deepcopy(task_to_update)
+
 
 
 
