@@ -19,6 +19,7 @@ class Cli:
             "create_project": self._create_project,
             "add_task": self._add_task,
             "edit_project": self._edit_project,
+            "delete_project": self._delete_project,
             "list_projects": self._list_projects,
             "help": self._display_help,
             "exit": self._exit
@@ -30,6 +31,7 @@ class Cli:
         print("  create_project <name> <description>")
         print("  add_task <project_id> <title> <description> [deadline:YYYY-MM-DD]")
         print("  edit_project <project_id> <new_title> <new_description>")
+        print("  delete_project <project_id>")
         print("  list_projects")
         print("  help")
         print("  exit")
@@ -97,6 +99,22 @@ class Cli:
 
         project = self._service.edit_project(project_id, new_name, new_description)
         print(f"Edited project '{project.name}' with ID {project.id}.")
+
+    def _delete_project(self, args: list[str]) -> None:
+        """Handles the delete_project command."""
+        if len(args) != 1:
+            print("Invalid number of arguments.")
+            return
+
+        project_id_str = args[0]
+        try:
+            project_id = int(project_id_str)
+        except ValueError:
+            print("Invalid project ID. Project ID must be an integer.")
+            return
+
+        self._service.delete_project(project_id)
+        print(f"Deleted project ID {project_id} and all of its tasks.")
 
     def run(self) -> None:
         """Main loop for the CLI"""

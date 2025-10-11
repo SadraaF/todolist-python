@@ -99,5 +99,10 @@ class ProjectService:
 
         return self._repo.update_project(project_id, new_name, new_description)
 
+    def delete_project(self, project_id: int) -> None:
+        """Delete a project by its ID."""
+        self._repo.delete_project(project_id)
+
+
 
 
