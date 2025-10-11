@@ -72,7 +72,9 @@ class InMemoryProjectRepository(IProjectRepository):
         return copy.deepcopy(project)
 
     def list_projects(self) -> Sequence[Project]:
-        return [copy.deepcopy(project) for project in self._projects.values()]
+        all_projects = self._projects.values()
+        sorted_projects = sorted(all_projects, key=lambda p: p.creation_date)
+        return [copy.deepcopy(project) for project in sorted_projects]
 
     def find_project_by_id(self, id: int) -> Project | None:
         if id not in self._projects:
