@@ -83,6 +83,21 @@ class ProjectService:
         """Find a project by its ID."""
         return self._repo.find_project_by_id(id)
     
+    def edit_project(self, project_id: int, new_name: str,
+                     new_description: str) -> Project:
+        """Edit an existing project after validating business rules."""
+        self._repo.find_project_by_id(project_id) # To check for existence
+
+        if len(new_name) > 30:
+            raise ValidationError("Project name must be 30 characters or less.")
+        if len(new_description) > 150:
+            raise ValidationError("Project description must be 150 characters or less.")
+
+        existing_project = self._repo.find_project_by_name(new_name)
+        if existing_project is not None and existing_project.id != project_id:
+            raise DuplicateProjectNameError(new_name)
+
+        return self._repo.update_project(project_id, new_name, new_description)
 
 
 
