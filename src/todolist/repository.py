@@ -1,4 +1,4 @@
-"""Data storage for the To-Do List Application.
+"""Data storage for the ToDo List Application.
 
 This module defines the interface for data storage and provides an in-memory
 implementation. The current design allows the storage backend to be swapped (e.g., to a
