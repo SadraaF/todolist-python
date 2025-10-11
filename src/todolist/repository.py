@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from datetime import datetime
 
-from todolist.exceptions import EntityDoesNotExist
+from todolist.exceptions import EntityDoesNotExistError
 from todolist.models import Project, Task
 
 class IProjectRepository(ABC):
@@ -78,7 +78,7 @@ class InMemoryProjectRepository(IProjectRepository):
 
     def find_project_by_id(self, id: int) -> Project | None:
         if id not in self._projects:
-            raise EntityDoesNotExist(entity_name="Project", entity_id=id)
+            raise EntityDoesNotExistError(entity_name="Project", entity_id=id)
         return copy.deepcopy(self._projects[id])
 
     def find_project_by_name(self, name: str) -> Project | None:
