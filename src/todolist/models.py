@@ -17,14 +17,14 @@ class Task:
     id: int
     title: str
     description: str
-    status: TaskStatus
+    status: TaskStatus = "todo"
     deadline: datetime | None = None # Deadline is optional
 
 @dataclass
 class Project:
     """A single project that can contain multiple tasks."""
     id: int
-    title: str
+    name: str
     description: str
     tasks: list[Task] = field(default_factory=list)
     
