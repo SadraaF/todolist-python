@@ -92,10 +92,13 @@ class InMemoryProjectRepository(IProjectRepository):
         return None
 
     def update_project(self, id: int, new_name: str, new_description: str) -> Project:
-        project = self.find_project_by_id(id)
+        if id not in self._projects:
+            raise EntityDoesNotExistError(entity_name="Project", entity_id=id)
+
+        project = self._projects[id]
         project.name = new_name
         project.description = new_description
-        self._projects[id] = project
+
         return copy.deepcopy(project)
 
     def delete_project(self, id: int) -> None:
@@ -117,7 +120,10 @@ class InMemoryProjectRepository(IProjectRepository):
 
     def update_task_status(self, project_id: int,
                            task_id: int, new_status: TaskStatus) -> Task:
-        project = self.find_project_by_id(project_id)
+        project = self._projects.get(project_id)
+        if not project:
+            raise EntityDoesNotExistError(entity_name="Project", entity_id=project_id)
+
 
         task_to_update = None
         for task in project.tasks:
