@@ -19,6 +19,7 @@ class Cli:
             "create_project": self._create_project,
             "add_task": self._add_task,
             "edit_task": self._edit_task,
+            "delete_task": self._delete_task,
             "set_task_status": self._set_task_status,
             "list_tasks": self._list_tasks,
             "edit_project": self._edit_project,
@@ -35,6 +36,7 @@ class Cli:
         print("  add_task <project_id> <title> <description> ")
         print("  edit_task <project_id> <task_id> <title> <description> "
               "<status> [deadline:YYYY-MM-DD]")
+        print("  delete_task <project_id> <task_id>")
         print("  set_task_status <project_id> <task_id> <todo|doing|done>")
         print("  list_tasks <project_id>")
         print("  edit_project <project_id> <new_title> <new_description>")
@@ -186,7 +188,25 @@ class Cli:
         task = self._service.edit_task(project_id, task_id, new_title, new_description,
                                        new_status, new_deadline)
 
-        print(f"Edited task '{task.title}' with ID {task.id}.")
+        print(f"Edited task '{task.title}' with ID {task.id} in "
+              f"project ID {project_id}.")
+
+    def _delete_task(self, args: list[str]) -> None:
+        """Handles the delete_task command."""
+        if len(args) != 2:
+            print("Invalid number of arguments.")
+            return
+
+        project_id_str, task_id_str = args
+        try:
+            project_id = int(project_id_str)
+            task_id = int(task_id_str)
+        except ValueError:
+            print("Invalid project ID or task ID; they must be integers.")
+            return
+
+        self._service.delete_task(project_id, task_id)
+        print(f"Deleted task with ID {task_id} in project ID {project_id}.")
 
     def run(self) -> None:
         """Main loop for the CLI"""

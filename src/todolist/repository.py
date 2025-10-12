@@ -68,6 +68,11 @@ class IProjectRepository(ABC):
         """Finds a task and updates all its attributes."""
         pass
 
+    @abstractmethod
+    def delete_task(self, project_id: int, task_id: int) -> None:
+        """Deletes a task by its ID within a project."""
+        pass
+
 class InMemoryProjectRepository(IProjectRepository):
     """In-memory implementation of a project repository."""
 
@@ -169,4 +174,18 @@ class InMemoryProjectRepository(IProjectRepository):
 
         return copy.deepcopy(task_to_update)
 
+    def delete_task(self, project_id: int, task_id: int) -> None:
+        project = self._projects.get(project_id)
+        if not project:
+            raise EntityDoesNotExistError(entity_name="Project", entity_id=project_id)
 
+        task_to_delete = None
+        for task in project.tasks:
+            if task.id == task_id:
+                task_to_delete = task
+                break
+
+        if task_to_delete is None:
+            raise EntityDoesNotExistError(entity_name="Task", entity_id=task_id)
+
+        project.tasks.remove(task_to_delete)

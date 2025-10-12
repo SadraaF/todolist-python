@@ -133,3 +133,7 @@ class ProjectService:
                                                                   is not None) else None
         return self._repo.update_task(project_id, task_id, new_title, new_description,
                                       new_status, new_deadline)
+
+    def delete_task(self, project_id: int, task_id: int) -> None:
+        """Delete a task by its ID within a project."""
+        self._repo.delete_task(project_id, task_id)
