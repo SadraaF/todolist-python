@@ -93,7 +93,7 @@ class InMemoryProjectRepository(IProjectRepository):
         sorted_projects = sorted(all_projects, key=lambda p: p.creation_date)
         return [copy.deepcopy(project) for project in sorted_projects]
 
-    def find_project_by_id(self, id: int) -> Project | None:
+    def find_project_by_id(self, id: int) -> Project:
         if id not in self._projects:
             raise EntityDoesNotExistError(entity_name="Project", entity_id=id)
         return copy.deepcopy(self._projects[id])

@@ -16,17 +16,20 @@ class Cli:
     def __init__(self, service: ProjectService):
         self._service = service
         self._commands = {
+            # Project Commands
             "create_project": self._create_project,
+            "list_projects": self._list_projects,
+            "edit_project": self._edit_project,
+            "delete_project": self._delete_project,
+            # Task Commands
             "add_task": self._add_task,
+            "list_tasks": self._list_tasks,
             "edit_task": self._edit_task,
             "delete_task": self._delete_task,
             "set_task_status": self._set_task_status,
-            "list_tasks": self._list_tasks,
-            "edit_project": self._edit_project,
-            "delete_project": self._delete_project,
-            "list_projects": self._list_projects,
+            # System Commands
             "help": self._display_help,
-            "exit": self._exit
+            "exit": self._exit,
         }
 
     def _display_help(self, args: list[str]) -> None:
