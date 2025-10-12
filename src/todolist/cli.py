@@ -19,6 +19,7 @@ class Cli:
             "create_project": self._create_project,
             "add_task": self._add_task,
             "set_task_status": self._set_task_status,
+            "list_tasks": self._list_tasks,
             "edit_project": self._edit_project,
             "delete_project": self._delete_project,
             "list_projects": self._list_projects,
@@ -32,6 +33,7 @@ class Cli:
         print("  create_project <name> <description>")
         print("  add_task <project_id> <title> <description> [deadline:YYYY-MM-DD]")
         print("  set_task_status <project_id> <task_id> <todo|doing|done>")
+        print("  list_tasks <project_id>")
         print("  edit_project <project_id> <new_title> <new_description>")
         print("  delete_project <project_id>")
         print("  list_projects")
@@ -136,6 +138,31 @@ class Cli:
         print(f"Changed status of task '{task.title}' with "
               f"ID {task.id} to '{new_status}'.")
 
+    def _list_tasks(self, args: list[str]) -> None:
+        """Handles the list_tasks command."""
+        if len(args) != 1:
+            print("Invalid number of arguments.")
+            return
+
+        project_id_str = args[0]
+        try:
+            project_id = int(project_id_str)
+        except ValueError:
+            print("Invalid project ID. Project ID must be an integer.")
+            return
+
+        project = self._service.find_project_by_id(project_id)
+        print(f"Tasks of project '{project.name}' with ID {project.id}:")
+        if not project.tasks:
+            print("  No tasks found.")
+            return
+
+        for task in project.tasks:
+            deadline_str = task.deadline.strftime("%Y-%m-%d") if task.deadline else \
+                "No deadline assigned"
+            print(f"  - Task ID: {task.id}, Status: {task.status}")
+            print(f"  - Title: {task.title}, Description: {task.description}")
+            print(f"  - Deadline: {deadline_str}")
 
     def run(self) -> None:
         """Main loop for the CLI"""
