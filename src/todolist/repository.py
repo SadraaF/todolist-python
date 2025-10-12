@@ -60,6 +60,14 @@ class IProjectRepository(ABC):
         """Finds a task by its ID and updates its status."""
         pass
 
+    @abstractmethod
+    def update_task(self, project_id: int, task_id: int, new_title: str,
+                    new_description: str, new_status: TaskStatus,
+                    new_deadline: datetime | None) -> Task:
+
+        """Finds a task and updates all its attributes."""
+        pass
+
 class InMemoryProjectRepository(IProjectRepository):
     """In-memory implementation of a project repository."""
 
@@ -137,6 +145,28 @@ class InMemoryProjectRepository(IProjectRepository):
         task_to_update.status = new_status
         return copy.deepcopy(task_to_update)
 
+    def update_task(self, project_id: int, task_id: int, new_title: str,
+                    new_description: str, new_status: TaskStatus,
+                    new_deadline: datetime | None) -> Task:
 
+        project = self._projects.get(project_id)
+        if not project:
+            raise EntityDoesNotExistError(entity_name="Project", entity_id=project_id)
+
+        task_to_update = None
+        for task in project.tasks:
+            if task.id == task_id:
+                task_to_update = task
+                break
+
+        if task_to_update is None:
+            raise EntityDoesNotExistError(entity_name="Task", entity_id=task_id)
+
+        task_to_update.title = new_title
+        task_to_update.description = new_description
+        task_to_update.status = new_status
+        task_to_update.deadline = new_deadline
+
+        return copy.deepcopy(task_to_update)
 
 

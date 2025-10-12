@@ -113,4 +113,23 @@ class ProjectService:
         new_status: TaskStatus = new_status_str
         return self._repo.update_task_status(project_id, task_id, new_status)
 
+    def edit_task(self, project_id: int, task_id: int, new_title: str,
+                  new_description: str, new_status_str: str,
+                  new_deadline_str: str | None) -> Task:
+        """Edit an existing task after validating."""
 
+        if len(new_title) > 30:
+            raise ValidationError("Task title must be 30 characters or less.")
+        if len(new_description) > 150:
+            raise ValidationError("Task description must be 150 characters or less.")
+
+        if new_status_str not in ("todo", "doing", "done"):
+            raise ValidationError("Task status must be either"
+                                  " 'todo', 'doing' or 'done'.")
+
+        new_status: TaskStatus = new_status_str
+
+        new_deadline = self._parse_deadline(new_deadline_str) if (new_deadline_str
+                                                                  is not None) else None
+        return self._repo.update_task(project_id, task_id, new_title, new_description,
+                                      new_status, new_deadline)

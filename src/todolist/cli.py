@@ -18,6 +18,7 @@ class Cli:
         self._commands = {
             "create_project": self._create_project,
             "add_task": self._add_task,
+            "edit_task": self._edit_task,
             "set_task_status": self._set_task_status,
             "list_tasks": self._list_tasks,
             "edit_project": self._edit_project,
@@ -31,7 +32,9 @@ class Cli:
         """Displays the available commands."""
         print("Available commands:")
         print("  create_project <name> <description>")
-        print("  add_task <project_id> <title> <description> [deadline:YYYY-MM-DD]")
+        print("  add_task <project_id> <title> <description> ")
+        print("  edit_task <project_id> <task_id> <title> <description> "
+              "<status> [deadline:YYYY-MM-DD]")
         print("  set_task_status <project_id> <task_id> <todo|doing|done>")
         print("  list_tasks <project_id>")
         print("  edit_project <project_id> <new_title> <new_description>")
@@ -163,6 +166,27 @@ class Cli:
             print(f"  - Task ID: {task.id}, Status: {task.status}")
             print(f"  - Title: {task.title}, Description: {task.description}")
             print(f"  - Deadline: {deadline_str}")
+
+    def _edit_task(self, args: list[str]) -> None:
+        """Handles the edit_task command."""
+        if not 5 <= len(args) <= 6:
+            print("Invalid number of arguments.")
+            return
+
+        project_id_str, task_id_str, new_title, new_description, new_status = args[:5]
+        new_deadline = args[5] if len(args) == 6 else None
+
+        try:
+            project_id = int(project_id_str)
+            task_id = int(task_id_str)
+        except ValueError:
+            print("Invalid project ID or task ID; they must be integers.")
+            return
+
+        task = self._service.edit_task(project_id, task_id, new_title, new_description,
+                                       new_status, new_deadline)
+
+        print(f"Edited task '{task.title}' with ID {task.id}.")
 
     def run(self) -> None:
         """Main loop for the CLI"""
