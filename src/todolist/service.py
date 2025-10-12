@@ -86,7 +86,6 @@ class ProjectService:
     def edit_project(self, project_id: int, new_name: str,
                      new_description: str) -> Project:
         """Edit an existing project after validating business rules."""
-        self._repo.find_project_by_id(project_id) # To check for existence
 
         if len(new_name) > 30:
             raise ValidationError("Project name must be 30 characters or less.")

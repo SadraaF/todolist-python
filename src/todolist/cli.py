@@ -32,6 +32,14 @@ class Cli:
             "exit": self._exit,
         }
 
+    def _parse_id(self, id_str: str, entity_name: str) -> int | None:
+        """Helper function to parse an ID string to an int and handle errors."""
+        try:
+            return int(id_str)
+        except ValueError:
+            print(f"Invalid {entity_name} ID. ID must be an integer.")
+            return None
+
     def _display_help(self, args: list[str]) -> None:
         """Displays the available commands."""
         print("Available commands:")
@@ -85,12 +93,7 @@ class Cli:
         project_id_str, title, description = args[:3]
         deadline = args[3] if len(args) == 4 else None
 
-        try:
-            project_id = int(project_id_str)
-        except ValueError:
-            print("Invalid project ID. Project ID must be an integer.")
-            return
-
+        project_id = self._parse_id(project_id_str, "Project")
         task = self._service.add_task_to_project(project_id, title,
                                                  description, deadline)
 
@@ -103,11 +106,7 @@ class Cli:
             return
 
         project_id_str, new_name, new_description = args
-        try:
-            project_id = int(project_id_str)
-        except ValueError:
-            print("Invalid project ID. Project ID must be an integer.")
-            return
+        project_id = self._parse_id(project_id_str, "Project")
 
         project = self._service.edit_project(project_id, new_name, new_description)
         print(f"Edited project '{project.name}' with ID {project.id}.")
@@ -119,11 +118,7 @@ class Cli:
             return
 
         project_id_str = args[0]
-        try:
-            project_id = int(project_id_str)
-        except ValueError:
-            print("Invalid project ID. Project ID must be an integer.")
-            return
+        project_id = self._parse_id(project_id_str, "Project")
 
         self._service.delete_project(project_id)
         print(f"Deleted project ID {project_id} and all of its tasks.")
@@ -135,12 +130,8 @@ class Cli:
             return
 
         project_id_str, task_id_str, new_status = args
-        try:
-            project_id = int(project_id_str)
-            task_id = int(task_id_str)
-        except ValueError:
-            print("Invalid project ID or task ID; they must be integers.")
-            return
+        project_id = self._parse_id(project_id_str, "Project")
+        task_id = self._parse_id(task_id_str, "Task")
 
         task = self._service.change_task_status(project_id, task_id, new_status)
         print(f"Changed status of task '{task.title}' with "
@@ -153,11 +144,7 @@ class Cli:
             return
 
         project_id_str = args[0]
-        try:
-            project_id = int(project_id_str)
-        except ValueError:
-            print("Invalid project ID. Project ID must be an integer.")
-            return
+        project_id = self._parse_id(project_id_str, "Project")
 
         project = self._service.find_project_by_id(project_id)
         print(f"Tasks of project '{project.name}' with ID {project.id}:")
@@ -181,12 +168,8 @@ class Cli:
         project_id_str, task_id_str, new_title, new_description, new_status = args[:5]
         new_deadline = args[5] if len(args) == 6 else None
 
-        try:
-            project_id = int(project_id_str)
-            task_id = int(task_id_str)
-        except ValueError:
-            print("Invalid project ID or task ID; they must be integers.")
-            return
+        project_id = self._parse_id(project_id_str, "Project")
+        task_id = self._parse_id(task_id_str, "Task")
 
         task = self._service.edit_task(project_id, task_id, new_title, new_description,
                                        new_status, new_deadline)
@@ -201,12 +184,8 @@ class Cli:
             return
 
         project_id_str, task_id_str = args
-        try:
-            project_id = int(project_id_str)
-            task_id = int(task_id_str)
-        except ValueError:
-            print("Invalid project ID or task ID; they must be integers.")
-            return
+        project_id = self._parse_id(project_id_str, "Project")
+        task_id = self._parse_id(task_id_str, "Task")
 
         self._service.delete_task(project_id, task_id)
         print(f"Deleted task with ID {task_id} in project ID {project_id}.")

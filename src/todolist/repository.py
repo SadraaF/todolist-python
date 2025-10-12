@@ -81,6 +81,21 @@ class InMemoryProjectRepository(IProjectRepository):
         self._next_project_id: int = 1
         self._next_task_id: int = 1
 
+    def _get_project_or_raise(self, id: int) -> Project:
+        """Return a project by its ID or raise EntityDoesNotExistError."""
+        project = self._projects.get(id)
+        if not project:
+            raise EntityDoesNotExistError("Project", id)
+        return project
+
+    @staticmethod
+    def _find_task_or_raise(project: Project, task_id: int) -> Task:
+        """Find a task in a project by its ID or raise EntityDoesNotExistError."""
+        for task in project.tasks:
+            if task.id == task_id:
+                return task
+        raise EntityDoesNotExistError("Task", task_id)
+
     def create_project(self, name: str, description: str) -> Project:
         project_id = self._next_project_id
         project = Project(id=project_id, name=name, description=description)
@@ -94,9 +109,8 @@ class InMemoryProjectRepository(IProjectRepository):
         return [copy.deepcopy(project) for project in sorted_projects]
 
     def find_project_by_id(self, id: int) -> Project:
-        if id not in self._projects:
-            raise EntityDoesNotExistError(entity_name="Project", entity_id=id)
-        return copy.deepcopy(self._projects[id])
+        # The difference between this method and _get_project_or_raise is the deep copy.
+        return copy.deepcopy(self._get_project_or_raise(id))
 
     def find_project_by_name(self, name: str) -> Project | None:
         for project in self._projects.values():
@@ -105,87 +119,50 @@ class InMemoryProjectRepository(IProjectRepository):
         return None
 
     def update_project(self, id: int, new_name: str, new_description: str) -> Project:
-        if id not in self._projects:
-            raise EntityDoesNotExistError(entity_name="Project", entity_id=id)
-
-        project = self._projects[id]
+        project = self._get_project_or_raise(id)
         project.name = new_name
         project.description = new_description
-
         return copy.deepcopy(project)
 
     def delete_project(self, id: int) -> None:
-        self.find_project_by_id(id) # To check for existence
+        self._get_project_or_raise(id) # To check for existence
         del self._projects[id]
 
     def create_task(self, project_id: int, title: str,
                     description: str, deadline: datetime | None) -> Task:
 
-        self.find_project_by_id(project_id) # To check for existence (can't use returned
-                                            # value because it's a copy.
+        project = self._get_project_or_raise(project_id)
 
         task = Task(id=self._next_task_id, title=title,
                     description=description, deadline=deadline)
         self._next_task_id += 1
 
-        self._projects[project_id].tasks.append(task)
+        project.tasks.append(task)
         return copy.deepcopy(task)
 
     def update_task_status(self, project_id: int,
                            task_id: int, new_status: TaskStatus) -> Task:
-        project = self._projects.get(project_id)
-        if not project:
-            raise EntityDoesNotExistError(entity_name="Project", entity_id=project_id)
+        project = self._get_project_or_raise(project_id)
 
-
-        task_to_update = None
-        for task in project.tasks:
-            if task.id == task_id:
-                task_to_update = task
-                break
-
-        if task_to_update is None:
-            raise EntityDoesNotExistError(entity_name="Task", entity_id=task_id)
-
-        task_to_update.status = new_status
-        return copy.deepcopy(task_to_update)
+        task = self._find_task_or_raise(project, task_id)
+        task.status = new_status
+        return copy.deepcopy(task)
 
     def update_task(self, project_id: int, task_id: int, new_title: str,
                     new_description: str, new_status: TaskStatus,
                     new_deadline: datetime | None) -> Task:
 
-        project = self._projects.get(project_id)
-        if not project:
-            raise EntityDoesNotExistError(entity_name="Project", entity_id=project_id)
+        project = self._get_project_or_raise(project_id)
+        task = self._find_task_or_raise(project, task_id)
 
-        task_to_update = None
-        for task in project.tasks:
-            if task.id == task_id:
-                task_to_update = task
-                break
+        task.title = new_title
+        task.description = new_description
+        task.status = new_status
+        task.deadline = new_deadline
 
-        if task_to_update is None:
-            raise EntityDoesNotExistError(entity_name="Task", entity_id=task_id)
-
-        task_to_update.title = new_title
-        task_to_update.description = new_description
-        task_to_update.status = new_status
-        task_to_update.deadline = new_deadline
-
-        return copy.deepcopy(task_to_update)
+        return copy.deepcopy(task)
 
     def delete_task(self, project_id: int, task_id: int) -> None:
-        project = self._projects.get(project_id)
-        if not project:
-            raise EntityDoesNotExistError(entity_name="Project", entity_id=project_id)
-
-        task_to_delete = None
-        for task in project.tasks:
-            if task.id == task_id:
-                task_to_delete = task
-                break
-
-        if task_to_delete is None:
-            raise EntityDoesNotExistError(entity_name="Task", entity_id=task_id)
-
-        project.tasks.remove(task_to_delete)
+        project = self._get_project_or_raise(project_id)
+        task = self._find_task_or_raise(project, task_id)
+        project.tasks.remove(task)
