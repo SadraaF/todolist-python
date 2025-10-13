@@ -94,6 +94,9 @@ class Cli:
         deadline = args[3] if len(args) == 4 else None
 
         project_id = self._parse_id(project_id_str, "Project")
+        if project_id is None:
+            return
+
         task = self._service.add_task_to_project(project_id, title,
                                                  description, deadline)
 
@@ -107,6 +110,8 @@ class Cli:
 
         project_id_str, new_name, new_description = args
         project_id = self._parse_id(project_id_str, "Project")
+        if project_id is None:
+            return
 
         project = self._service.edit_project(project_id, new_name, new_description)
         print(f"Edited project '{project.name}' with ID {project.id}.")
@@ -119,6 +124,8 @@ class Cli:
 
         project_id_str = args[0]
         project_id = self._parse_id(project_id_str, "Project")
+        if project_id is None:
+            return
 
         self._service.delete_project(project_id)
         print(f"Deleted project ID {project_id} and all of its tasks.")
@@ -133,6 +140,9 @@ class Cli:
         project_id = self._parse_id(project_id_str, "Project")
         task_id = self._parse_id(task_id_str, "Task")
 
+        if task_id is None or project_id is None:
+            return
+
         task = self._service.change_task_status(project_id, task_id, new_status)
         print(f"Changed status of task '{task.title}' with "
               f"ID {task.id} to '{new_status}'.")
@@ -145,6 +155,8 @@ class Cli:
 
         project_id_str = args[0]
         project_id = self._parse_id(project_id_str, "Project")
+        if project_id is None:
+            return
 
         project = self._service.find_project_by_id(project_id)
         print(f"Tasks of project '{project.name}' with ID {project.id}:")
@@ -171,6 +183,9 @@ class Cli:
         project_id = self._parse_id(project_id_str, "Project")
         task_id = self._parse_id(task_id_str, "Task")
 
+        if task_id is None or project_id is None:
+            return
+
         task = self._service.edit_task(project_id, task_id, new_title, new_description,
                                        new_status, new_deadline)
 
@@ -186,6 +201,9 @@ class Cli:
         project_id_str, task_id_str = args
         project_id = self._parse_id(project_id_str, "Project")
         task_id = self._parse_id(task_id_str, "Task")
+
+        if task_id is None or project_id is None:
+            return
 
         self._service.delete_task(project_id, task_id)
         print(f"Deleted task with ID {task_id} in project ID {project_id}.")

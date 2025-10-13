@@ -65,7 +65,7 @@ class ProjectService:
 
         if len(project.tasks) >= self._max_tasks:
             raise TaskLimitExceededError(f"Project '{project.name}' cannot have"
-                                         f"more tasks.")
+                                         f" more tasks.")
         if not title or len(title) > 30:
             raise ValidationError("Task title must be between 1 and 30 characters.")
         if len(description) > 150:
