@@ -117,7 +117,7 @@ class ProjectService:
                   new_deadline_str: str | None) -> Task:
         """Edit an existing task after validating."""
 
-        if len(new_title) > 30:
+        if not new_title or len(new_title) > 30:
             raise ValidationError("Task title must be between 1 and 30 characters.")
         if len(new_description) > 150:
             raise ValidationError("Task description must be 150 characters or less.")
