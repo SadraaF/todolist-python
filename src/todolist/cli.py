@@ -44,13 +44,13 @@ class Cli:
         """Displays the available commands."""
         print("Available commands:")
         print("  create_project <name> <description>")
-        print("  add_task <project_id> <title> <description> ")
+        print("  add_task <project_id> <title> <description> [deadline:YYYY-MM-DD]")
         print("  edit_task <project_id> <task_id> <title> <description> "
               "<status> [deadline:YYYY-MM-DD]")
         print("  delete_task <project_id> <task_id>")
         print("  set_task_status <project_id> <task_id> <todo|doing|done>")
         print("  list_tasks <project_id>")
-        print("  edit_project <project_id> <new_title> <new_description>")
+        print("  edit_project <project_id> <new_name> <new_description>")
         print("  delete_project <project_id>")
         print("  list_projects")
         print("  help")
