@@ -200,10 +200,10 @@ class Cli:
                     continue
 
                 parts = shlex.split(raw_input)
-                command = parts[0]
+                command_str = parts[0]
                 args = parts[1:]
 
-                command = self._commands.get(command)
+                command = self._commands.get(command_str)
                 if command is None:
                     print("Invalid command. Type 'help' for a list of commands.")
                     continue
