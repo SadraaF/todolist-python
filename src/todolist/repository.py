@@ -79,7 +79,6 @@ class InMemoryProjectRepository(IProjectRepository):
     def __init__(self):
         self._projects: dict[int, Project] = {}
         self._next_project_id: int = 1
-        self._next_task_id: int = 1
 
     def _get_project_or_raise(self, id: int) -> Project:
         """Return a project by its ID or raise EntityDoesNotExistError."""
@@ -133,9 +132,9 @@ class InMemoryProjectRepository(IProjectRepository):
 
         project = self._get_project_or_raise(project_id)
 
-        task = Task(id=self._next_task_id, title=title,
+        task = Task(id=project._next_task_id, title=title,
                     description=description, deadline=deadline)
-        self._next_task_id += 1
+        project._next_task_id += 1
 
         project.tasks.append(task)
         return copy.deepcopy(task)

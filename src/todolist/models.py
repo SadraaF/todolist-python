@@ -28,5 +28,6 @@ class Project:
     description: str
     tasks: list[Task] = field(default_factory=list)
     creation_date: datetime = field(default_factory=datetime.now)
+    _next_task_id: int = field(default=1, init=False, repr=False)
 
     
