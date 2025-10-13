@@ -44,8 +44,8 @@ class ProjectService:
 
     def create_project(self, name: str, description: str) -> Project:
         """Create a new project after validating business rules."""
-        if len(name) > 30:
-            raise ValidationError("Project name must be 30 characters or less.")
+        if not name or len(name) > 30:
+            raise ValidationError("Project name must be between 1 and 30 characters.")
         if len(description) > 150:
             raise ValidationError("Project description must be 150 characters or less.")
 
@@ -66,8 +66,8 @@ class ProjectService:
         if len(project.tasks) >= self._max_tasks:
             raise TaskLimitExceededError(f"Project '{project.name}' cannot have"
                                          f"more tasks.")
-        if len(title) > 30:
-            raise ValidationError("Task title must be 30 characters or less.")
+        if not title or len(title) > 30:
+            raise ValidationError("Task title must be between 1 and 30 characters.")
         if len(description) > 150:
             raise ValidationError("Task description must be 150 characters or less.")
 
@@ -87,8 +87,8 @@ class ProjectService:
                      new_description: str) -> Project:
         """Edit an existing project after validating business rules."""
 
-        if len(new_name) > 30:
-            raise ValidationError("Project name must be 30 characters or less.")
+        if not new_name or len(new_name) > 30:
+            raise ValidationError("Project name must be between 1 and 30 characters.")
         if len(new_description) > 150:
             raise ValidationError("Project description must be 150 characters or less.")
 
@@ -118,7 +118,7 @@ class ProjectService:
         """Edit an existing task after validating."""
 
         if len(new_title) > 30:
-            raise ValidationError("Task title must be 30 characters or less.")
+            raise ValidationError("Task title must be between 1 and 30 characters.")
         if len(new_description) > 150:
             raise ValidationError("Task description must be 150 characters or less.")
 
