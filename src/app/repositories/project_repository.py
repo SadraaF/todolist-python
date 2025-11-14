@@ -10,8 +10,8 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from datetime import datetime
 
-from todolist.exceptions import EntityDoesNotExistError
-from todolist.models import Project, Task, TaskStatus
+from src.app.exceptions.base import EntityDoesNotExistError
+from src.app.models.project import Project, Task, TaskStatus
 
 class IProjectRepository(ABC):
     """Interface for a project and task repository."""
