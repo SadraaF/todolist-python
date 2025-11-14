@@ -23,6 +23,8 @@ class Task(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
 
     def __repr__(self) -> str:
         return f"<Task(id={self.id}, title='{self.title}')>"

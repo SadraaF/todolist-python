@@ -65,7 +65,7 @@ class IProjectRepository(ABC):
     @abstractmethod
     def update_task(self, project_id: int, task_id: int, new_title: str,
                     new_description: str, new_status: TaskStatus,
-                    new_deadline: datetime | None) -> Task:
+                    new_deadline: datetime | None, new_closed_at: datetime | None) -> Task:
 
         """Finds a task and updates all its attributes."""
         pass
@@ -73,6 +73,11 @@ class IProjectRepository(ABC):
     @abstractmethod
     def delete_task(self, project_id: int, task_id: int) -> None:
         """Deletes a task by its ID within a project."""
+        pass
+
+    @abstractmethod
+    def find_overdue_tasks(self) -> Sequence[Task]:
+        """Returns a list of all tasks that are past their deadline and not done."""
         pass
 
 class InMemoryProjectRepository(IProjectRepository):
@@ -151,7 +156,7 @@ class InMemoryProjectRepository(IProjectRepository):
 
     def update_task(self, project_id: int, task_id: int, new_title: str,
                     new_description: str, new_status: TaskStatus,
-                    new_deadline: datetime | None) -> Task:
+                    new_deadline: datetime | None, new_closed_at: datetime | None) -> Task:
 
         project = self._get_project_or_raise(project_id)
         task = self._find_task_or_raise(project, task_id)
@@ -160,6 +165,7 @@ class InMemoryProjectRepository(IProjectRepository):
         task.description = new_description
         task.status = new_status
         task.deadline = new_deadline
+        task.closed_at = new_closed_at
 
         return copy.deepcopy(task)
 
@@ -167,3 +173,13 @@ class InMemoryProjectRepository(IProjectRepository):
         project = self._get_project_or_raise(project_id)
         task = self._find_task_or_raise(project, task_id)
         project.tasks.remove(task)
+
+    def find_overdue_tasks(self) -> Sequence[Task]:
+        """Returns a list of all tasks that are past their deadline and not done."""
+        now = datetime.now()
+        overdue_tasks = []
+        for project in self._projects.values():
+            for task in project.tasks:
+                if task.deadline and task.deadline < now and task.status != "done":
+                    overdue_tasks.append(copy.deepcopy(task))
+        return overdue_tasks
