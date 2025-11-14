@@ -1,28 +1,32 @@
+# ToDo List - Python (Phase 2 - Relational Database)
 
-# ToDo List - Python (Phase 1 - In-Memory)
+This project is a command-line ToDo list application built in Python, evolving from an in-memory application to one with persistent data storage. It was developed as part of a software engineering course to demonstrate layered architecture, database integration, and modern Python development practices.
 
-This project is a command-line ToDo list application built in Python. It was developed as part of a software engineering course to demonstrate core Object-Oriented Programming (OOP) principles, clean architecture, and modern Python development practices.
+In this second phase, the application was migrated from in-memory storage to a **PostgreSQL** database, ensuring data persists between sessions. The architecture's separation of concerns, established in Phase 1, allowed for this transition with minimal changes to the core business logic.
 
-In this first phase, the application uses in-memory storage, meaning all data is cleared when the program exits. The architecture is designed to be extensible, allowing for persistent storage (e.g., a database) to be added in future phases without altering the core business logic.
+## Key Features in This Phase
 
-## Architectural Analysis
-
-The application is divided into three distinct layers:
-
--   **Presentation Layer (`cli.py`):** Handles user input and output.
--   **Business Logic Layer (`service.py`):** Enforces application rules and constraints.
--   **Data Access Layer (`repository.py`):** Manages data storage and retrieval.
+-   **Data Persistence:** Data is now stored in a PostgreSQL database, managed with Docker.
+-   **ORM Integration:** Uses **SQLAlchemy** as the Object-Relational Mapper to bridge the gap between Python objects and database tables.
+-   **Database Migrations:** Employs **Alembic** to manage and version the database schema, ensuring consistency.
+-   **Scheduled Tasks:** Includes a command to automatically find and close overdue tasks, which can be run periodically.
 
 ## Technologies Used
 
 -   **Language:** Python 3.12+
 -   **Dependency Management:** Poetry
--   **Core Libraries:** `python-dotenv` for managing environment configurations.
+-   **Database:** PostgreSQL
+-   **Containerization:** Docker
+-   **ORM:** SQLAlchemy
+-   **Migration Tool:** Alembic
+-   **Scheduling:** `schedule`
+-   **Core Libraries:** `python-dotenv`, `psycopg2-binary`
 
 ## How to Run
 
 1.  **Prerequisites:**
-    Ensure you have [Poetry](https://python-poetry.org/) installed on your system.
+    -   [Poetry](https://python-poetry.org/) installed on your system.
+    -   [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
 
 2.  **Clone the repository:**
     ```bash
@@ -31,24 +35,52 @@ The application is divided into three distinct layers:
     ```
 
 3.  **Install dependencies:**
-    Poetry will create a virtual environment and install the required packages from `pyproject.toml`.
+    Poetry will create a virtual environment and install the required packages.
     ```bash
     poetry install
     ```
 
-4.  **Run the application:**
+4.  **Configure Environment:**
+    Create a `.env` file by copying the example file. No changes are needed if you are using the default Docker configuration.
+    ```bash
+    cp .env.example .env
+    ```
+
+5.  **Start the Database:**
+    This command will start the PostgreSQL database container in the background.
+    ```bash
+    docker-compose up -d
+    ```
+
+6.  **Apply Database Migrations:**
+    This command will create the necessary tables (`projects`, `tasks`) in the database.
+    ```bash
+    poetry run alembic upgrade head
+    ```
+
+7.  **Run the CLI Application:**
     Use Poetry to run the main script from within the project's virtual environment.
     ```bash
     poetry run python main.py
     ```
 
+8.  **Run the Scheduler (Optional):**
+    To start the process that automatically closes overdue tasks, run the scheduler script in a separate terminal.
+    ```bash
+    poetry run python -m src.app.commands.scheduler
+    ```
+
 ## Project Architecture
 
-The codebase is organized into a modular, layered structure to ensure a clean separation of concerns:
+The codebase is organized into a modular, layered structure within the `src/app` directory:
 
 -   `main.py`: The application's entry point. It initializes all components and wires them together using dependency injection.
--   `cli.py`: Implements the Command-Line Interface. It is responsible for parsing user commands and displaying output, but contains no business logic.
--   `service.py`: Contains the core business logic. It validates data, enforces rules (like project limits), and orchestrates calls to the repository.
--   `repository.py`: Manages data persistence. It defines an interface (`IProjectRepository`) and provides an `InMemoryProjectRepository` implementation.
--   `models.py`: Defines the primary data structures (`Project`, `Task`) using Python's `dataclasses`.
--   `exceptions.py`: Contains custom exception classes for handling application-specific errors cleanly.
+-   `src/app/cli/`: Implements the Command-Line Interface.
+-   `src/app/commands/`: Contains standalone scripts for manual or scheduled tasks, like auto-closing overdue tasks.
+-   `src/app/db/`: Configures the database connection, session, and the SQLAlchemy base model.
+-   `src/app/exceptions/`: Contains custom exception classes for handling application-specific errors.
+-   `src/app/models/`: Defines the SQLAlchemy ORM models (`Project`, `Task`) that map to database tables.
+-   `src/app/repositories/`: Manages data persistence. It defines an interface (`IProjectRepository`) and provides an `SqlAlchemyProjectRepository` implementation.
+-   `src/app/services/`: Contains the core business logic, orchestrating calls between the CLI and the repository.
+-   `alembic/`: Stores database migration scripts generated by Alembic.
+-   `docker-compose.yml`: Defines the PostgreSQL database service for Docker.
