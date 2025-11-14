@@ -8,15 +8,15 @@ business rules such as validation and data constraints.
 from datetime import datetime
 from collections.abc import Sequence
 
-from todolist.exceptions import (
+from src.app.exceptions.base import (
     DuplicateProjectNameError,
     EntityDoesNotExistError,
     ProjectLimitExceededError,
     TaskLimitExceededError,
     ValidationError,
 )
-from todolist.models import Project, Task, TaskStatus
-from todolist.repository import IProjectRepository
+from src.app.models.project import Project, Task, TaskStatus
+from src.app.repositories.project_repository import IProjectRepository
 
 class ProjectService:
     """Handles projects and tasks, enforcing rules."""

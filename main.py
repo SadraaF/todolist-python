@@ -8,9 +8,9 @@ import os
 
 from dotenv import load_dotenv
 
-from todolist.cli import Cli
-from todolist.repository import InMemoryProjectRepository
-from todolist.service import ProjectService
+from src.app.cli.console import Cli
+from src.app.repositories.project_repository import InMemoryProjectRepository
+from src.app.services.project_service import ProjectService
 
 def main() -> None:
     """Run the application."""

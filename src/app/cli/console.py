@@ -7,8 +7,8 @@ the results or errors to the user.
 
 import shlex
 
-from todolist.exceptions import TodolistError
-from todolist.service import ProjectService
+from src.app.exceptions.base import TodolistError
+from src.app.services.project_service import ProjectService
 
 class Cli:
     """The command-line interface for the application."""
