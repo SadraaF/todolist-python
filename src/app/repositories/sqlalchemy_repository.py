@@ -99,6 +99,7 @@ class SqlAlchemyProjectRepository(IProjectRepository):
         new_description: str,
         new_status: TaskStatus,
         new_deadline: datetime | None,
+        new_closed_at: datetime | None
     ) -> Task:
         project = self._get_project_or_raise(project_id)
         task = self._find_task_in_project_or_raise(project, task_id)
@@ -106,6 +107,7 @@ class SqlAlchemyProjectRepository(IProjectRepository):
         task.description = new_description
         task.status = new_status
         task.deadline = new_deadline
+        task.closed_at = new_closed_at
         self._session.commit()
         self._session.refresh(task)
         return task
@@ -115,3 +117,12 @@ class SqlAlchemyProjectRepository(IProjectRepository):
         task = self._find_task_in_project_or_raise(project, task_id)
         self._session.delete(task)
         self._session.commit()
+
+    def find_overdue_tasks(self) -> Sequence[Task]:
+        """Returns a list of all tasks that are past their deadline and not done."""
+        now = datetime.now()
+        return (
+            self._session.query(Task)
+            .filter(Task.deadline < now, Task.status != "done")
+            .all()
+        )

@@ -132,8 +132,29 @@ class ProjectService:
         new_deadline = self._parse_deadline(new_deadline_str) if (new_deadline_str
                                                                   is not None) else None
         return self._repo.update_task(project_id, task_id, new_title, new_description,
-                                      new_status, new_deadline)
+                                      new_status, new_deadline, new_closed_at=None)
 
     def delete_task(self, project_id: int, task_id: int) -> None:
         """Delete a task by its ID within a project."""
         self._repo.delete_task(project_id, task_id)
+
+    def autoclose_overdue_tasks(self) -> int:
+        """Finds and closes all overdue tasks.
+        Returns: The number of tasks that were closed.
+        """
+        overdue_tasks = self._repo.find_overdue_tasks()
+        if not overdue_tasks:
+            return 0
+
+        now = datetime.now()
+        for task in overdue_tasks:
+            self._repo.update_task(
+                project_id=task.project_id,
+                task_id=task.id,
+                new_title=task.title,
+                new_description=task.description,
+                new_status="done",
+                new_deadline=task.deadline,
+                new_closed_at=now
+            )
+        return len(overdue_tasks)
