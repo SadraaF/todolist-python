@@ -1,33 +1,31 @@
-"""Defines the core data models for the ToDo List application.
+"""ORM model for a Project."""
 
-This module defines the two primary data structures used in the ToDo List application,
-which are Project and Task. These models are simple data structures (using dataclasses)
-and are used throughout the application's various parts.
-"""
-
-from typing import Literal
 from datetime import datetime
-from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
-TaskStatus = Literal["todo", "doing", "done"] # Defining a specific type for type safety
+from sqlalchemy import DateTime, Integer, String, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-@dataclass
-class Task:
-    """A single task within a project."""
-    id: int
-    title: str
-    description: str
-    status: TaskStatus = "todo"
-    deadline: datetime | None = None # Deadline is optional
+from src.app.db.base import Base
 
-@dataclass
-class Project:
+if TYPE_CHECKING:
+    from .task import Task
+
+class Project(Base):
     """A single project that can contain multiple tasks."""
-    id: int
-    name: str
-    description: str
-    tasks: list[Task] = field(default_factory=list)
-    creation_date: datetime = field(default_factory=datetime.now)
-    _next_task_id: int = field(default=1, init=False, repr=False)
+    __tablename__ = "projects"
 
-    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(30), unique=True, nullable=False)
+    description: Mapped[str] = mapped_column(String(150), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    # Relationship to tasks
+    tasks: Mapped[list["Task"]] = relationship(
+        backref="project", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return f"<Project(id={self.id}, name='{self.name}')>"
