@@ -15,7 +15,8 @@ from src.app.exceptions.base import (
     TaskLimitExceededError,
     ValidationError,
 )
-from src.app.models.project import Project, Task, TaskStatus
+from src.app.models.project import Project
+from src.app.models.task import Task, TaskStatus
 from src.app.repositories.project_repository import IProjectRepository
 
 class ProjectService:
