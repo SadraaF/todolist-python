@@ -9,8 +9,10 @@ import os
 from dotenv import load_dotenv
 
 from src.app.cli.console import Cli
-from src.app.repositories.project_repository import InMemoryProjectRepository
+from src.app.db.session import SessionLocal
+from src.app.repositories.sqlalchemy_repository import SqlAlchemyProjectRepository
 from src.app.services.project_service import ProjectService
+
 
 def main() -> None:
     """Run the application."""
@@ -19,11 +21,18 @@ def main() -> None:
     max_projects = int(os.environ.get("MAX_NUMBER_OF_PROJECT"))
     max_tasks = int(os.environ.get("MAX_NUMBER_OF_TASK"))
 
-    repository = InMemoryProjectRepository()
-    service = ProjectService(repository, max_projects, max_tasks)
-    cli = Cli(service)
+    # Create a new database session
+    db_session = SessionLocal()
 
-    cli.run()
+    try:
+        # Initialize the SQLAlchemy repository with the session
+        repository = SqlAlchemyProjectRepository(session=db_session)
+        service = ProjectService(repository, max_projects, max_tasks)
+        cli = Cli(service)
+
+        cli.run()
+    finally:
+        db_session.close()
 
 
 if __name__ == '__main__':

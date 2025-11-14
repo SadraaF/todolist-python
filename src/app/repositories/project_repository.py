@@ -11,7 +11,9 @@ from collections.abc import Sequence
 from datetime import datetime
 
 from src.app.exceptions.base import EntityDoesNotExistError
-from src.app.models.project import Project, Task, TaskStatus
+from src.app.models.project import Project
+from src.app.models.task import Task, TaskStatus
+
 
 class IProjectRepository(ABC):
     """Interface for a project and task repository."""

@@ -79,7 +79,7 @@ class Cli:
 
         print("Projects:")
         for project in projects:
-            created_date = project.creation_date.strftime("%Y-%m-%d")
+            created_date = project.created_at.strftime("%Y-%m-%d")
             print(f"  - ID: {project.id}, Name: '{project.name}', "
                   f"Description: '{project.description}', "
                   f"Created: {created_date}")
