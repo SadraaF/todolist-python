@@ -1,8 +1,5 @@
 """A command-line script to automatically close overdue tasks."""
-import os
-
-from dotenv import load_dotenv
-
+from src.app.core.config import get_settings
 from src.app.db.session import SessionLocal
 from src.app.repositories.sqlalchemy_repository import SqlAlchemyProjectRepository
 from src.app.services.project_service import ProjectService
@@ -11,15 +8,16 @@ from src.app.services.project_service import ProjectService
 def run_autoclose():
     """Initializes dependencies and runs the auto-closing service logic."""
     print("Running job: Auto-closing overdue tasks...")
-    load_dotenv()
-
-    max_projects = int(os.environ.get("MAX_NUMBER_OF_PROJECT"))
-    max_tasks = int(os.environ.get("MAX_NUMBER_OF_TASK"))
+    settings = get_settings()
 
     db_session = SessionLocal()
     try:
         repo = SqlAlchemyProjectRepository(session=db_session)
-        service = ProjectService(repo, max_projects, max_tasks)
+        service = ProjectService(
+            repo,
+            max_projects=settings.MAX_NUMBER_OF_PROJECT,
+            max_tasks=settings.MAX_NUMBER_OF_TASK
+        )
         closed_count = service.autoclose_overdue_tasks()
         print(f"Successfully closed {closed_count} overdue tasks.")
     finally:
