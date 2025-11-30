@@ -17,6 +17,11 @@ class ProjectCreate(ProjectBase):
     pass
 
 
+class ProjectUpdate(ProjectBase):
+    """Schema used for updating an existing project."""
+    pass
+
+
 class ProjectResponse(ProjectBase):
     """Schema for representing a project in API responses."""
     id: int

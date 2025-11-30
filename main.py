@@ -2,8 +2,14 @@
 
 from fastapi import FastAPI
 from src.app.api.exception_handlers import validation_exception_handler
-from src.app.exceptions.base import ValidationError
-
+from src.app.api.exception_handlers import (
+    entity_not_found_exception_handler,  
+    validation_exception_handler,
+)
+from src.app.exceptions.base import (
+    EntityDoesNotExistError,  
+    ValidationError,
+)
 from src.app.api.controllers import projects_controller
 
 app = FastAPI(
@@ -13,6 +19,7 @@ app = FastAPI(
 )
 
 app.add_exception_handler(ValidationError, validation_exception_handler)
+app.add_exception_handler(EntityDoesNotExistError, entity_not_found_exception_handler)
 
 app.include_router(projects_controller.router, prefix="/api/v1")
 
