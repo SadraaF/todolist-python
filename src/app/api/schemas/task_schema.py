@@ -3,7 +3,7 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 
-from src/app/models.task import TaskStatus
+from src.app.models.task import TaskStatus
 
 
 class TaskBase(BaseModel):

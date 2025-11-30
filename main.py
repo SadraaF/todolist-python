@@ -1,39 +1,19 @@
-"""Main entry point for the ToDo List application.
+"""Main entry point for the ToDo List API."""
 
-This file initializes all the necessary components (repository, service, CLI) and starts
-the application's CLI. It is the root of the application.
-"""
+from fastapi import FastAPI
 
-import os
+from src.app.api.controllers import projects_controller
 
-from dotenv import load_dotenv
-
-from src.app.cli.console import Cli
-from src.app.db.session import SessionLocal
-from src.app.repositories.sqlalchemy_repository import SqlAlchemyProjectRepository
-from src.app.services.project_service import ProjectService
+app = FastAPI(
+    title="ToDo List API",
+    description="A simple API to manage projects and tasks.",
+    version="0.1.0",
+)
 
 
-def main() -> None:
-    """Run the application."""
-    load_dotenv()
+app.include_router(projects_controller.router, prefix="/api/v1")
 
-    max_projects = int(os.environ.get("MAX_NUMBER_OF_PROJECT"))
-    max_tasks = int(os.environ.get("MAX_NUMBER_OF_TASK"))
-
-    # Create a new database session
-    db_session = SessionLocal()
-
-    try:
-        # Initialize the SQLAlchemy repository with the session
-        repository = SqlAlchemyProjectRepository(session=db_session)
-        service = ProjectService(repository, max_projects, max_tasks)
-        cli = Cli(service)
-
-        cli.run()
-    finally:
-        db_session.close()
-
-
-if __name__ == '__main__':
-    main()
+@app.get("/", tags=["Root"])
+def read_root():
+    """A simple root endpoint to confirm the API is running."""
+    return {"message": "Welcome to the ToDo List API!"}

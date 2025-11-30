@@ -210,6 +210,12 @@ class Cli:
 
     def run(self) -> None:
         """Main loop for the CLI"""
+
+        print("\n" + "="*60)
+        print("WARNING: The CLI is deprecated and will be removed in a future version.")
+        print("Please use the new Web API for all operations.")
+        print("="*60 + "\n")
+
         self._display_help([])
         while True:
             try:
