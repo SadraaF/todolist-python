@@ -80,6 +80,10 @@ The API will be available at `http://127.0.0.1:8000`.
 -   **Interactive Documentation (Swagger UI):** Open your browser and navigate to [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs). Here you can view all available endpoints and test them directly.
 -   **Alternative Documentation (ReDoc):** Navigate to [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc).
 
+#### Testing with Postman
+
+A complete Postman collection can be created to test all available endpoints. It is recommended to set up an environment with a `base_url` variable set to `http://127.0.0.1:8000/api/v1` for efficient testing.
+
 ### 4. Running the (Deprecated) CLI
 
 The Command-Line Interface is still available but is deprecated and will be removed in a future version. To run it:
