@@ -1,6 +1,8 @@
 """Main entry point for the ToDo List API."""
 
 from fastapi import FastAPI
+from src.app.api.exception_handlers import validation_exception_handler
+from src.app.exceptions.base import ValidationError
 
 from src.app.api.controllers import projects_controller
 
@@ -10,6 +12,7 @@ app = FastAPI(
     version="0.1.0",
 )
 
+app.add_exception_handler(ValidationError, validation_exception_handler)
 
 app.include_router(projects_controller.router, prefix="/api/v1")
 
