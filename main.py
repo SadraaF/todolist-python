@@ -10,7 +10,7 @@ from src.app.exceptions.base import (
     EntityDoesNotExistError,  
     ValidationError,
 )
-from src.app.api.controllers import projects_controller
+from src.app.api.controllers import projects_controller, tasks_controller
 
 app = FastAPI(
     title="ToDo List API",
@@ -22,6 +22,7 @@ app.add_exception_handler(ValidationError, validation_exception_handler)
 app.add_exception_handler(EntityDoesNotExistError, entity_not_found_exception_handler)
 
 app.include_router(projects_controller.router, prefix="/api/v1")
+app.include_router(tasks_controller.router, prefix="/api/v1")
 
 @app.get("/", tags=["Root"])
 def read_root():
