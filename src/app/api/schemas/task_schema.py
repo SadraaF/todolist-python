@@ -18,6 +18,16 @@ class TaskCreate(TaskBase):
     pass
 
 
+class TaskUpdate(TaskBase):
+    """Schema used for updating an existing task (PUT)."""
+    status: TaskStatus
+
+
+class TaskStatusUpdate(BaseModel):
+    """Schema used for partially updating a task's status (PATCH)."""
+    status: TaskStatus
+
+
 class TaskResponse(TaskBase):
     """Schema for representing a task in API responses."""
     id: int
