@@ -41,13 +41,12 @@ def create_task_for_project(
     - The task title must be between 1 and 30 characters.
     - A 404 Not Found error is returned if the project does not exist.
     """
-    deadline_str = task_in.deadline.strftime("%Y-%m-%d") if task_in.deadline else None
 
     task = task_service.add_task_to_project(
         project_id=project_id,
         title=task_in.title,
         description=task_in.description,
-        deadline_str=deadline_str,
+        deadline=task_in.deadline,
     )
     return task
 
@@ -65,14 +64,14 @@ def update_task(
     - All fields (title, description, status, deadline) must be provided in the request.
     - A 404 Not Found error is returned if the project or task does not exist.
     """
-    deadline_str = task_in.deadline.strftime("%Y-%m-%d") if task_in.deadline else None
+
     task = task_service.edit_task(
         project_id=project_id,
         task_id=task_id,
         new_title=task_in.title,
         new_description=task_in.description,
         new_status_str=task_in.status,
-        new_deadline_str=deadline_str,
+        new_deadline=task_in.deadline,
     )
     return task
 
