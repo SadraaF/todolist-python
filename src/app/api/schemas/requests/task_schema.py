@@ -1,7 +1,7 @@
-"""Pydantic schemas for Task resources."""
+"""Pydantic schemas for Task API requests."""
 
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
 from src.app.models.task import TaskStatus
 
@@ -26,15 +26,3 @@ class TaskUpdate(TaskBase):
 class TaskStatusUpdate(BaseModel):
     """Schema used for partially updating a task's status (PATCH)."""
     status: TaskStatus
-
-
-class TaskResponse(TaskBase):
-    """Schema for representing a task in API responses."""
-    id: int
-    project_id: int
-    status: TaskStatus
-    created_at: datetime
-    closed_at: datetime | None = None
-
-    # Create the schema from an ORM model
-    model_config = ConfigDict(from_attributes=True)

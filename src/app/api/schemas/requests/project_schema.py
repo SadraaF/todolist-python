@@ -1,9 +1,6 @@
-"""Pydantic schemas for Project resources."""
+"""Pydantic schemas for Project API requests."""
 
-from datetime import datetime
-from pydantic import BaseModel, ConfigDict, Field
-
-from .task_schema import TaskResponse
+from pydantic import BaseModel, Field
 
 
 class ProjectBase(BaseModel):
@@ -20,12 +17,3 @@ class ProjectCreate(ProjectBase):
 class ProjectUpdate(ProjectBase):
     """Schema used for updating an existing project."""
     pass
-
-
-class ProjectResponse(ProjectBase):
-    """Schema for representing a project in API responses."""
-    id: int
-    created_at: datetime
-    tasks: list[TaskResponse] = [] 
-
-    model_config = ConfigDict(from_attributes=True)
