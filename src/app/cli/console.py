@@ -10,6 +10,7 @@ import shlex
 from src.app.exceptions.base import TodolistError
 from src.app.services.project_service import ProjectService
 from src.app.services.task_service import TaskService
+from datetime import datetime
 
 class Cli:
     """The command-line interface for the application."""
@@ -41,6 +42,16 @@ class Cli:
         except ValueError:
             print(f"Invalid {entity_name} ID. ID must be an integer.")
             return None
+
+    @staticmethod
+    def _parse_deadline(deadline_str: str | None) -> datetime | None:
+        """Parse a deadline string from the CLI into a datetime object."""
+        if deadline_str is None:
+            return None
+        try:
+            return datetime.strptime(deadline_str, "%Y-%m-%d").date()
+        except ValueError:
+            raise ValidationError("Invalid deadline format. Use YYYY-MM-DD")
 
     def _display_help(self, args: list[str]) -> None:
         """Displays the available commands."""
@@ -93,11 +104,13 @@ class Cli:
             return
 
         project_id_str, title, description = args[:3]
-        deadline = args[3] if len(args) == 4 else None
+        deadline_str = args[3] if len(args) == 4 else None
 
         project_id = self._parse_id(project_id_str, "Project")
         if project_id is None:
             return
+
+        deadline = self._parse_deadline(deadline_str)
 
         task = self._task_service.add_task_to_project(project_id, title,
                                                  description, deadline)
@@ -180,13 +193,15 @@ class Cli:
             return
 
         project_id_str, task_id_str, new_title, new_description, new_status = args[:5]
-        new_deadline = args[5] if len(args) == 6 else None
+        new_deadline_str = args[5] if len(args) == 6 else None
 
         project_id = self._parse_id(project_id_str, "Project")
         task_id = self._parse_id(task_id_str, "Task")
 
         if task_id is None or project_id is None:
             return
+
+        new_deadline = self._parse_deadline(new_deadline_str)
 
         task = self._task_service.edit_task(project_id, task_id, new_title, new_description,
                                        new_status, new_deadline)

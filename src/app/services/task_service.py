@@ -19,18 +19,8 @@ class TaskService:
         self._project_repo = project_repo
         self._max_tasks = max_tasks
 
-    @staticmethod
-    def _parse_deadline(deadline_str: str | None) -> datetime | None:
-        """Parse a deadline string into a datetime object."""
-        if deadline_str is None:
-            return None
-        try:
-            return datetime.strptime(deadline_str, "%Y-%m-%d").date()
-        except ValueError:
-            raise ValidationError("Invalid deadline format. Use YYYY-MM-DD")
-
     def add_task_to_project(self, project_id: int, title: str,
-                            description: str | None, deadline_str: str | None) -> Task:
+                            description: str | None, deadline: datetime | None) -> Task:
         """Add a task to an existing project after validation."""
         project = self._project_repo.find_project_by_id(project_id)
 
@@ -40,8 +30,6 @@ class TaskService:
             raise ValidationError("Task title must be between 1 and 30 characters.")
         if description and len(description) > 150:
             raise ValidationError("Task description must be 150 characters or less.")
-
-        deadline = self._parse_deadline(deadline_str)
 
         return self._task_repo.create_task(project_id, title, description, deadline)
 
@@ -58,7 +46,7 @@ class TaskService:
 
     def edit_task(self, project_id: int, task_id: int, new_title: str,
                   new_description: str | None, new_status_str: str,
-                  new_deadline_str: str | None) -> Task:
+                  new_deadline: datetime | None) -> Task:
         """Edit an existing task after validating."""
         self._project_repo.find_project_by_id(project_id)
         task = self._task_repo.find_task_in_project(project_id, task_id)
@@ -71,7 +59,6 @@ class TaskService:
             raise ValidationError("Task status must be either 'todo', 'doing' or 'done'.")
 
         new_status: TaskStatus = new_status_str
-        new_deadline = self._parse_deadline(new_deadline_str)
 
         return self._task_repo.update_task(
             task, new_title, new_description, new_status, new_deadline, new_closed_at=None
