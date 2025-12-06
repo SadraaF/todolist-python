@@ -1,8 +1,11 @@
 """A command-line script to automatically close overdue tasks."""
 from src.app.core.config import get_settings
 from src.app.db.session import SessionLocal
-from src.app.repositories.sqlalchemy_repository import SqlAlchemyProjectRepository
-from src.app.services.project_service import ProjectService
+from src.app.repositories.sqlalchemy_project_repository import \
+    SqlAlchemyProjectRepository
+from src.app.repositories.sqlalchemy_task_repository import \
+    SqlAlchemyTaskRepository
+from src.app.services.task_service import TaskService
 
 
 def run_autoclose():
@@ -12,11 +15,14 @@ def run_autoclose():
 
     db_session = SessionLocal()
     try:
-        repo = SqlAlchemyProjectRepository(session=db_session)
-        service = ProjectService(
-            repo,
-            max_projects=settings.MAX_NUMBER_OF_PROJECT,
-            max_tasks=settings.MAX_NUMBER_OF_TASK
+        project_repo = SqlAlchemyProjectRepository(session=db_session)
+        task_repo = SqlAlchemyTaskRepository(session=db_session)
+
+        # Initialize the service with its dependencies
+        service = TaskService(
+            task_repo=task_repo,
+            project_repo=project_repo,
+            max_tasks=settings.MAX_NUMBER_OF_TASK  
         )
         closed_count = service.autoclose_overdue_tasks()
         print(f"Successfully closed {closed_count} overdue tasks.")

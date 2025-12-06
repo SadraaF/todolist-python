@@ -1,0 +1,102 @@
+"""Service Layer (Business Logic) for Tasks."""
+
+from datetime import datetime
+
+from src.app.exceptions.base import (
+    TaskLimitExceededError,
+    ValidationError,
+)
+from src.app.models.task import Task, TaskStatus
+from src.app.repositories.project_repository import IProjectRepository
+from src.app.repositories.task_repository import ITaskRepository
+
+
+class TaskService:
+    """Handles task business logic."""
+
+    def __init__(self, task_repo: ITaskRepository, project_repo: IProjectRepository, max_tasks: int):
+        self._task_repo = task_repo
+        self._project_repo = project_repo
+        self._max_tasks = max_tasks
+
+    @staticmethod
+    def _parse_deadline(deadline_str: str | None) -> datetime | None:
+        """Parse a deadline string into a datetime object."""
+        if deadline_str is None:
+            return None
+        try:
+            return datetime.strptime(deadline_str, "%Y-%m-%d").date()
+        except ValueError:
+            raise ValidationError("Invalid deadline format. Use YYYY-MM-DD")
+
+    def add_task_to_project(self, project_id: int, title: str,
+                            description: str | None, deadline_str: str | None) -> Task:
+        """Add a task to an existing project after validation."""
+        project = self._project_repo.find_project_by_id(project_id)
+
+        if len(project.tasks) >= self._max_tasks:
+            raise TaskLimitExceededError(f"Project '{project.name}' cannot have more tasks.")
+        if not title or len(title) > 30:
+            raise ValidationError("Task title must be between 1 and 30 characters.")
+        if description and len(description) > 150:
+            raise ValidationError("Task description must be 150 characters or less.")
+
+        deadline = self._parse_deadline(deadline_str)
+
+        return self._task_repo.create_task(project_id, title, description, deadline)
+
+    def change_task_status(self, project_id: int, task_id: int, new_status_str: str) -> Task:
+        """Change the status of a task after validating."""
+        self._project_repo.find_project_by_id(project_id)
+        task = self._task_repo.find_task_in_project(project_id, task_id)
+
+        if new_status_str not in ("todo", "doing", "done"):
+            raise ValidationError("Task status must be either 'todo', 'doing' or 'done'.")
+
+        new_status: TaskStatus = new_status_str
+        return self._task_repo.update_task_status(task, new_status)
+
+    def edit_task(self, project_id: int, task_id: int, new_title: str,
+                  new_description: str | None, new_status_str: str,
+                  new_deadline_str: str | None) -> Task:
+        """Edit an existing task after validating."""
+        self._project_repo.find_project_by_id(project_id)
+        task = self._task_repo.find_task_in_project(project_id, task_id)
+
+        if not new_title or len(new_title) > 30:
+            raise ValidationError("Task title must be between 1 and 30 characters.")
+        if new_description and len(new_description) > 150:
+            raise ValidationError("Task description must be 150 characters or less.")
+        if new_status_str not in ("todo", "doing", "done"):
+            raise ValidationError("Task status must be either 'todo', 'doing' or 'done'.")
+
+        new_status: TaskStatus = new_status_str
+        new_deadline = self._parse_deadline(new_deadline_str)
+
+        return self._task_repo.update_task(
+            task, new_title, new_description, new_status, new_deadline, new_closed_at=None
+        )
+
+    def delete_task(self, project_id: int, task_id: int) -> None:
+        """Delete a task by its ID within a project."""
+        self._project_repo.find_project_by_id(project_id)
+        task = self._task_repo.find_task_in_project(project_id, task_id)
+        self._task_repo.delete_task(task)
+
+    def autoclose_overdue_tasks(self) -> int:
+        """Finds and closes all overdue tasks."""
+        overdue_tasks = self._task_repo.find_overdue_tasks()
+        if not overdue_tasks:
+            return 0
+
+        now = datetime.now()
+        for task in overdue_tasks:
+            self._task_repo.update_task(
+                task=task,
+                new_title=task.title,
+                new_description=task.description,
+                new_status="done",
+                new_deadline=task.deadline,
+                new_closed_at=now
+            )
+        return len(overdue_tasks)
