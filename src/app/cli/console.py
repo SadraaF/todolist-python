@@ -9,12 +9,14 @@ import shlex
 
 from src.app.exceptions.base import TodolistError
 from src.app.services.project_service import ProjectService
+from src.app.services.task_service import TaskService
 
 class Cli:
     """The command-line interface for the application."""
 
-    def __init__(self, service: ProjectService):
-        self._service = service
+    def __init__(self, project_service: ProjectService, task_service: TaskService):
+        self._project_service = project_service
+        self._task_service = task_service
         self._commands = {
             # Project Commands
             "create_project": self._create_project,
@@ -66,13 +68,13 @@ class Cli:
             print("Invalid number of arguments.")
             return
 
-        title, description = args
-        project = self._service.create_project(title, description)
+        name, description = args
+        project = self._project_service.create_project(name, description)
         print(f"Created project '{project.name}' with ID {project.id}.")
 
     def _list_projects(self, args: list[str]) -> None:
         """Handles the list_projects command."""
-        projects = self._service.get_all_projects()
+        projects = self._project_service.get_all_projects()
         if not projects:
             print("No projects found.")
             return
@@ -97,7 +99,7 @@ class Cli:
         if project_id is None:
             return
 
-        task = self._service.add_task_to_project(project_id, title,
+        task = self._task_service.add_task_to_project(project_id, title,
                                                  description, deadline)
 
         print(f"Added task '{task.title}' with ID {task.id}.")
@@ -113,7 +115,7 @@ class Cli:
         if project_id is None:
             return
 
-        project = self._service.edit_project(project_id, new_name, new_description)
+        project = self._project_service.edit_project(project_id, new_name, new_description)
         print(f"Edited project '{project.name}' with ID {project.id}.")
 
     def _delete_project(self, args: list[str]) -> None:
@@ -127,7 +129,7 @@ class Cli:
         if project_id is None:
             return
 
-        self._service.delete_project(project_id)
+        self._project_service.delete_project(project_id)
         print(f"Deleted project ID {project_id} and all of its tasks.")
 
     def _set_task_status(self, args: list[str]) -> None:
@@ -143,7 +145,7 @@ class Cli:
         if task_id is None or project_id is None:
             return
 
-        task = self._service.change_task_status(project_id, task_id, new_status)
+        task = self._task_service.change_task_status(project_id, task_id, new_status)
         print(f"Changed status of task '{task.title}' with "
               f"ID {task.id} to '{new_status}'.")
 
@@ -158,7 +160,7 @@ class Cli:
         if project_id is None:
             return
 
-        project = self._service.find_project_by_id(project_id)
+        project = self._project_service.find_project_by_id(project_id)
         print(f"Tasks of project '{project.name}' with ID {project.id}:")
         if not project.tasks:
             print("  No tasks found.")
@@ -186,7 +188,7 @@ class Cli:
         if task_id is None or project_id is None:
             return
 
-        task = self._service.edit_task(project_id, task_id, new_title, new_description,
+        task = self._task_service.edit_task(project_id, task_id, new_title, new_description,
                                        new_status, new_deadline)
 
         print(f"Edited task '{task.title}' with ID {task.id} in "
@@ -205,7 +207,7 @@ class Cli:
         if task_id is None or project_id is None:
             return
 
-        self._service.delete_task(project_id, task_id)
+        self._task_service.delete_task(project_id, task_id)
         print(f"Deleted task with ID {task_id} in project ID {project_id}.")
 
     def run(self) -> None:

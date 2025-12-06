@@ -11,7 +11,7 @@ from src.app.api.schemas.project_schema import (
 
 from src.app.core.config import get_settings
 from src.app.db.session import get_db
-from src.app.repositories.sqlalchemy_repository import SqlAlchemyProjectRepository
+from src.app.repositories.sqlalchemy_project_repository import SqlAlchemyProjectRepository
 from src.app.services.project_service import ProjectService
 from src.app.api.dependencies import get_project_service
 from sqlalchemy.orm import Session

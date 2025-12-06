@@ -10,25 +10,34 @@ from dotenv import load_dotenv
 
 from src.app.cli.console import Cli
 from src.app.db.session import SessionLocal
-from src.app.repositories.sqlalchemy_repository import SqlAlchemyProjectRepository
+from src.app.core.config import get_settings
+from src.app.repositories.sqlalchemy_project_repository import \
+    SqlAlchemyProjectRepository
+from src.app.repositories.sqlalchemy_task_repository import \
+    SqlAlchemyTaskRepository
 from src.app.services.project_service import ProjectService
+from src.app.services.task_service import TaskService
 
 
 def main() -> None:
     """Run the application."""
     load_dotenv()
 
-    max_projects = int(os.environ.get("MAX_NUMBER_OF_PROJECT"))
-    max_tasks = int(os.environ.get("MAX_NUMBER_OF_TASK"))
+    settings = get_settings()
+    max_projects = settings.MAX_NUMBER_OF_PROJECT
+    max_tasks = settings.MAX_NUMBER_OF_TASK
 
     # Create a new database session
     db_session = SessionLocal()
 
     try:
-        # Initialize the SQLAlchemy repository with the session
-        repository = SqlAlchemyProjectRepository(session=db_session)
-        service = ProjectService(repository, max_projects, max_tasks)
-        cli = Cli(service)
+        project_repo = SqlAlchemyProjectRepository(session=db_session)
+        task_repo = SqlAlchemyTaskRepository(session=db_session)
+
+        project_service = ProjectService(project_repo, max_projects)
+        task_service = TaskService(task_repo, project_repo, max_tasks)
+
+        cli = Cli(project_service, task_service)
 
         cli.run()
     finally:

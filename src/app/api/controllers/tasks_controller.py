@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 
 from fastapi import APIRouter, Depends, Response, status
-from src.app.api.dependencies import get_project_service
+from src.app.api.dependencies import get_project_service, get_task_service
 from src.app.api.schemas.task_schema import (
     TaskCreate,
     TaskResponse,
@@ -11,20 +11,21 @@ from src.app.api.schemas.task_schema import (
     TaskUpdate,
 )
 from src.app.services.project_service import ProjectService
+from src.app.services.task_service import TaskService
 
 router = APIRouter(prefix="/projects/{project_id}/tasks", tags=["Tasks"])
 
 
 @router.get("", response_model=list[TaskResponse])
 def list_tasks_for_project(
-    project_id: int, service: ProjectService = Depends(get_project_service)
+    project_id: int, project_service: ProjectService = Depends(get_project_service)
 ) -> Sequence[TaskResponse]:
     """
     Retrieve all tasks for a specific project.
 
     - A 404 Not Found error is returned if the project does not exist.
     """
-    project = service.find_project_by_id(project_id)
+    project = project_service.find_project_by_id(project_id)
     return project.tasks
 
 
@@ -32,7 +33,7 @@ def list_tasks_for_project(
 def create_task_for_project(
     project_id: int,
     task_in: TaskCreate,
-    service: ProjectService = Depends(get_project_service),
+    task_service: TaskService = Depends(get_task_service),
 ) -> TaskResponse:
     """
     Create a new task within a specific project.
@@ -42,7 +43,7 @@ def create_task_for_project(
     """
     deadline_str = task_in.deadline.strftime("%Y-%m-%d") if task_in.deadline else None
 
-    task = service.add_task_to_project(
+    task = task_service.add_task_to_project(
         project_id=project_id,
         title=task_in.title,
         description=task_in.description,
@@ -56,7 +57,7 @@ def update_task(
     project_id: int,
     task_id: int,
     task_in: TaskUpdate,
-    service: ProjectService = Depends(get_project_service),
+    task_service: TaskService = Depends(get_task_service),
 ) -> TaskResponse:
     """
     Update an existing task's details.
@@ -65,7 +66,7 @@ def update_task(
     - A 404 Not Found error is returned if the project or task does not exist.
     """
     deadline_str = task_in.deadline.strftime("%Y-%m-%d") if task_in.deadline else None
-    task = service.edit_task(
+    task = task_service.edit_task(
         project_id=project_id,
         task_id=task_id,
         new_title=task_in.title,
@@ -81,7 +82,7 @@ def update_task_status(
     project_id: int,
     task_id: int,
     task_in: TaskStatusUpdate,
-    service: ProjectService = Depends(get_project_service),
+    task_service: TaskService = Depends(get_task_service),
 ) -> TaskResponse:
     """
     Partially update a task to change its status.
@@ -89,7 +90,7 @@ def update_task_status(
     - Valid statuses are 'todo', 'doing', or 'done'.
     - A 404 Not Found error is returned if the project or task does not exist.
     """
-    task = service.change_task_status(
+    task = task_service.change_task_status(
         project_id=project_id, task_id=task_id, new_status_str=task_in.status
     )
     return task
@@ -99,7 +100,7 @@ def update_task_status(
 def delete_task(
     project_id: int,
     task_id: int,
-    service: ProjectService = Depends(get_project_service),
+    task_service: TaskService = Depends(get_task_service),
 ) -> Response:
     """
     Delete a specific task from a project.
@@ -107,5 +108,5 @@ def delete_task(
     - Returns a 204 No Content response on success.
     - A 404 Not Found error is returned if the project or task does not exist.
     """
-    service.delete_task(project_id=project_id, task_id=task_id)
+    task_service.delete_task(project_id=project_id, task_id=task_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
