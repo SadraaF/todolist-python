@@ -4,12 +4,12 @@ from collections.abc import Sequence
 
 from fastapi import APIRouter, Depends, Response, status
 from src.app.api.dependencies import get_project_service, get_task_service
-from src.app.api.schemas.task_schema import (
+from src.app.api.schemas.requests.task_schema import (
     TaskCreate,
-    TaskResponse,
     TaskStatusUpdate,
     TaskUpdate,
 )
+from src.app.api.schemas.responses.task_schema import TaskResponse
 from src.app.services.project_service import ProjectService
 from src.app.services.task_service import TaskService
 

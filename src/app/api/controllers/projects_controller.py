@@ -3,11 +3,11 @@
 from collections.abc import Sequence
 
 from fastapi import APIRouter, Depends, Response, status
-from src.app.api.schemas.project_schema import (
+from src.app.api.schemas.requests.project_schema import (
     ProjectCreate,
-    ProjectResponse,
     ProjectUpdate,
 )
+from src.app.api.schemas.responses.project_schema import ProjectResponse
 
 from src.app.core.config import get_settings
 from src.app.db.session import get_db
