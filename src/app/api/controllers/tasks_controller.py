@@ -9,6 +9,7 @@ from src.app.api.schemas.requests.task_schema import (
     TaskStatusUpdate,
     TaskUpdate,
 )
+from src.app.api.schemas.responses.base import SuccessResponse
 from src.app.api.schemas.responses.task_schema import TaskResponse
 from src.app.services.project_service import ProjectService
 from src.app.services.task_service import TaskService
@@ -16,7 +17,7 @@ from src.app.services.task_service import TaskService
 router = APIRouter(prefix="/projects/{project_id}/tasks", tags=["Tasks"])
 
 
-@router.get("", response_model=list[TaskResponse])
+@router.get("", response_model=SuccessResponse[list[TaskResponse]])
 def list_tasks_for_project(
     project_id: int, project_service: ProjectService = Depends(get_project_service)
 ) -> Sequence[TaskResponse]:
@@ -26,10 +27,14 @@ def list_tasks_for_project(
     - A 404 Not Found error is returned if the project does not exist.
     """
     project = project_service.find_project_by_id(project_id)
-    return project.tasks
+    return {"data": project.tasks}
 
 
-@router.post("", status_code=status.HTTP_201_CREATED, response_model=TaskResponse)
+@router.post(
+    "",
+    status_code=status.HTTP_201_CREATED,
+    response_model=SuccessResponse[TaskResponse],
+)
 def create_task_for_project(
     project_id: int,
     task_in: TaskCreate,
@@ -48,10 +53,10 @@ def create_task_for_project(
         description=task_in.description,
         deadline=task_in.deadline,
     )
-    return task
+    return {"data": task}
 
 
-@router.put("/{task_id}", response_model=TaskResponse)
+@router.put("/{task_id}", response_model=SuccessResponse[TaskResponse])
 def update_task(
     project_id: int,
     task_id: int,
@@ -73,10 +78,10 @@ def update_task(
         new_status_str=task_in.status,
         new_deadline=task_in.deadline,
     )
-    return task
+    return {"data": task}
 
 
-@router.patch("/{task_id}", response_model=TaskResponse)
+@router.patch("/{task_id}", response_model=SuccessResponse[TaskResponse])
 def update_task_status(
     project_id: int,
     task_id: int,
@@ -92,7 +97,7 @@ def update_task_status(
     task = task_service.change_task_status(
         project_id=project_id, task_id=task_id, new_status_str=task_in.status
     )
-    return task
+    return {"data": task}
 
 
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
