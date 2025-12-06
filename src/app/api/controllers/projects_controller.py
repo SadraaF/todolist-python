@@ -7,20 +7,15 @@ from src.app.api.schemas.requests.project_schema import (
     ProjectCreate,
     ProjectUpdate,
 )
+from src.app.api.schemas.responses.base import SuccessResponse
 from src.app.api.schemas.responses.project_schema import ProjectResponse
-
-from src.app.core.config import get_settings
-from src.app.db.session import get_db
-from src.app.repositories.sqlalchemy_project_repository import SqlAlchemyProjectRepository
 from src.app.services.project_service import ProjectService
 from src.app.api.dependencies import get_project_service
-from sqlalchemy.orm import Session
-
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
 
-@router.get("", response_model=list[ProjectResponse])
+@router.get("", response_model=SuccessResponse[list[ProjectResponse]])
 def list_projects(
     service: ProjectService = Depends(get_project_service),
 ) -> Sequence[ProjectResponse]:
@@ -31,10 +26,14 @@ def list_projects(
     If no projects exist, an empty list is returned.
     """
     projects = service.get_all_projects()
-    return projects
+    return {"data": projects}
 
 
-@router.post("", status_code=status.HTTP_201_CREATED, response_model=ProjectResponse)
+@router.post(
+    "",
+    status_code=status.HTTP_201_CREATED,
+    response_model=SuccessResponse[ProjectResponse],
+)
 def create_project(
     project_in: ProjectCreate,
     service: ProjectService = Depends(get_project_service),
@@ -50,10 +49,10 @@ def create_project(
     project = service.create_project(
         name=project_in.name, description=project_in.description
     )
-    return project
+    return {"data": project}
 
 
-@router.get("/{project_id}", response_model=ProjectResponse)
+@router.get("/{project_id}", response_model=SuccessResponse[ProjectResponse])
 def get_project(
     project_id: int, service: ProjectService = Depends(get_project_service)
 ) -> ProjectResponse:
@@ -64,10 +63,10 @@ def get_project(
     - Returns a 404 Not Found error if the project does not exist.
     """
     project = service.find_project_by_id(project_id)
-    return project
+    return {"data": project}
 
 
-@router.put("/{project_id}", response_model=ProjectResponse)
+@router.put("/{project_id}", response_model=SuccessResponse[ProjectResponse])
 def update_project(
     project_id: int,
     project_in: ProjectUpdate,
@@ -85,7 +84,7 @@ def update_project(
         new_name=project_in.name,
         new_description=project_in.description,
     )
-    return project
+    return {"data": project}
 
 
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
