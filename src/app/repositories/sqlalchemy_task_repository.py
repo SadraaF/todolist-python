@@ -2,9 +2,9 @@
 
 from collections.abc import Sequence
 from datetime import datetime
-
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
-
 from src.app.exceptions.base import EntityDoesNotExistError
 from src.app.models.task import Task, TaskStatus
 from .task_repository import ITaskRepository
@@ -13,10 +13,10 @@ from .task_repository import ITaskRepository
 class SqlAlchemyTaskRepository(ITaskRepository):
     """SQLAlchemy-based repository for tasks."""
 
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self._session = session
 
-    def create_task(
+    async def create_task(
         self, project_id: int, title: str, description: str | None, deadline: datetime | None
     ) -> Task:
         task = Task(
@@ -26,24 +26,26 @@ class SqlAlchemyTaskRepository(ITaskRepository):
             deadline=deadline,
         )
         self._session.add(task)
-        self._session.commit()
-        self._session.refresh(task)
+        await self._session.commit()
+        await self._session.refresh(task)
         return task
 
-    def find_task_in_project(self, project_id: int, task_id: int) -> Task:
+    async def find_task_in_project(self, project_id: int, task_id: int) -> Task:
         """Fetch a task by ID within a project or raise an exception."""
-        task = self._session.query(Task).filter_by(project_id=project_id, id=task_id).first()
+        stmt = select(Task).where(Task.project_id == project_id, Task.id == task_id)
+        result = await self._session.execute(stmt)
+        task = result.scalar_one_or_none()
         if not task:
             raise EntityDoesNotExistError("Task", task_id)
         return task
 
-    def update_task_status(self, task: Task, new_status: TaskStatus) -> Task:
+    async def update_task_status(self, task: Task, new_status: TaskStatus) -> Task:
         task.status = new_status
-        self._session.commit()
-        self._session.refresh(task)
+        await self._session.commit()
+        await self._session.refresh(task)
         return task
 
-    def update_task(
+    async def update_task(
         self,
         task: Task,
         new_title: str,
@@ -57,19 +59,17 @@ class SqlAlchemyTaskRepository(ITaskRepository):
         task.status = new_status
         task.deadline = new_deadline
         task.closed_at = new_closed_at
-        self._session.commit()
-        self._session.refresh(task)
+        await self._session.commit()
+        await self._session.refresh(task)
         return task
 
-    def delete_task(self, task: Task) -> None:
-        self._session.delete(task)
-        self._session.commit()
+    async def delete_task(self, task: Task) -> None:
+        await self._session.delete(task)
+        await self._session.commit()
 
-    def find_overdue_tasks(self) -> Sequence[Task]:
+    async def find_overdue_tasks(self) -> Sequence[Task]:
         """Returns a list of all tasks that are past their deadline and not done."""
         now = datetime.now()
-        return (
-            self._session.query(Task)
-            .filter(Task.deadline < now, Task.status != "done")
-            .all()
-        )
+        stmt = select(Task).where(Task.deadline < now, Task.status != "done")
+        result = await self._session.execute(stmt)
+        return result.scalars().all()

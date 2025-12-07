@@ -18,15 +18,15 @@ router = APIRouter(prefix="/projects/{project_id}/tasks", tags=["Tasks"])
 
 
 @router.get("", response_model=SuccessResponse[list[TaskResponse]])
-def list_tasks_for_project(
+async def list_tasks_for_project(
     project_id: int, project_service: ProjectService = Depends(get_project_service)
-) -> Sequence[TaskResponse]:
+) -> dict:
     """
     Retrieve all tasks for a specific project.
 
     - A 404 Not Found error is returned if the project does not exist.
     """
-    project = project_service.find_project_by_id(project_id)
+    project = await project_service.find_project_by_id(project_id)
     return {"data": project.tasks}
 
 
@@ -35,11 +35,11 @@ def list_tasks_for_project(
     status_code=status.HTTP_201_CREATED,
     response_model=SuccessResponse[TaskResponse],
 )
-def create_task_for_project(
+async def create_task_for_project(
     project_id: int,
     task_in: TaskCreate,
     task_service: TaskService = Depends(get_task_service),
-) -> TaskResponse:
+) -> dict:
     """
     Create a new task within a specific project.
 
@@ -47,7 +47,7 @@ def create_task_for_project(
     - A 404 Not Found error is returned if the project does not exist.
     """
 
-    task = task_service.add_task_to_project(
+    task = await task_service.add_task_to_project(
         project_id=project_id,
         title=task_in.title,
         description=task_in.description,
@@ -57,12 +57,12 @@ def create_task_for_project(
 
 
 @router.put("/{task_id}", response_model=SuccessResponse[TaskResponse])
-def update_task(
+async def update_task(
     project_id: int,
     task_id: int,
     task_in: TaskUpdate,
     task_service: TaskService = Depends(get_task_service),
-) -> TaskResponse:
+) -> dict:
     """
     Update an existing task's details.
 
@@ -70,7 +70,7 @@ def update_task(
     - A 404 Not Found error is returned if the project or task does not exist.
     """
 
-    task = task_service.edit_task(
+    task = await task_service.edit_task(
         project_id=project_id,
         task_id=task_id,
         new_title=task_in.title,
@@ -82,26 +82,26 @@ def update_task(
 
 
 @router.patch("/{task_id}", response_model=SuccessResponse[TaskResponse])
-def update_task_status(
+async def update_task_status(
     project_id: int,
     task_id: int,
     task_in: TaskStatusUpdate,
     task_service: TaskService = Depends(get_task_service),
-) -> TaskResponse:
+) -> dict:
     """
     Partially update a task to change its status.
 
     - Valid statuses are 'todo', 'doing', or 'done'.
     - A 404 Not Found error is returned if the project or task does not exist.
     """
-    task = task_service.change_task_status(
+    task = await task_service.change_task_status(
         project_id=project_id, task_id=task_id, new_status_str=task_in.status
     )
     return {"data": task}
 
 
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_task(
+async def delete_task(
     project_id: int,
     task_id: int,
     task_service: TaskService = Depends(get_task_service),
@@ -112,5 +112,5 @@ def delete_task(
     - Returns a 204 No Content response on success.
     - A 404 Not Found error is returned if the project or task does not exist.
     """
-    task_service.delete_task(project_id=project_id, task_id=task_id)
+    await task_service.delete_task(project_id=project_id, task_id=task_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

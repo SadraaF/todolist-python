@@ -38,6 +38,8 @@ def run_migrations_online() -> None:
     # Get the Alembic config object
     alembic_config = context.config
 
+    sync_database_url = settings.DATABASE_URL.replace("postgresql+psycopg", "postgresql+psycopg2")
+
     # Set the sqlalchemy.url from our settings object
     alembic_config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
