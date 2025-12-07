@@ -3,6 +3,7 @@
 from collections.abc import Sequence
 
 from fastapi import APIRouter, Depends, Response, status
+from src.app.api.dependencies import get_project_service
 from src.app.api.schemas.requests.project_schema import (
     ProjectCreate,
     ProjectUpdate,
@@ -10,22 +11,21 @@ from src.app.api.schemas.requests.project_schema import (
 from src.app.api.schemas.responses.base import SuccessResponse
 from src.app.api.schemas.responses.project_schema import ProjectResponse
 from src.app.services.project_service import ProjectService
-from src.app.api.dependencies import get_project_service
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
 
 @router.get("", response_model=SuccessResponse[list[ProjectResponse]])
-def list_projects(
+async def list_projects(
     service: ProjectService = Depends(get_project_service),
-) -> Sequence[ProjectResponse]:
+) -> dict:
     """
     Retrieve a list of all projects.
 
     Returns a list of all projects in the system, sorted by their creation date.
     If no projects exist, an empty list is returned.
     """
-    projects = service.get_all_projects()
+    projects = await service.get_all_projects()
     return {"data": projects}
 
 
@@ -34,10 +34,10 @@ def list_projects(
     status_code=status.HTTP_201_CREATED,
     response_model=SuccessResponse[ProjectResponse],
 )
-def create_project(
+async def create_project(
     project_in: ProjectCreate,
     service: ProjectService = Depends(get_project_service),
-) -> ProjectResponse:
+) -> dict:
     """
     Create a new project.
 
@@ -46,32 +46,32 @@ def create_project(
     - The description must be 150 characters or less.
     - Returns a 409 Conflict error if the project name already exists.
     """
-    project = service.create_project(
+    project = await service.create_project(
         name=project_in.name, description=project_in.description
     )
     return {"data": project}
 
 
 @router.get("/{project_id}", response_model=SuccessResponse[ProjectResponse])
-def get_project(
+async def get_project(
     project_id: int, service: ProjectService = Depends(get_project_service)
-) -> ProjectResponse:
+) -> dict:
     """
     Retrieve a single project by its ID.
 
     - project_id: The integer ID of the project to retrieve.
     - Returns a 404 Not Found error if the project does not exist.
     """
-    project = service.find_project_by_id(project_id)
+    project = await service.find_project_by_id(project_id)
     return {"data": project}
 
 
 @router.put("/{project_id}", response_model=SuccessResponse[ProjectResponse])
-def update_project(
+async def update_project(
     project_id: int,
     project_in: ProjectUpdate,
     service: ProjectService = Depends(get_project_service),
-) -> ProjectResponse:
+) -> dict:
     """
     Update an existing project's name and description.
 
@@ -79,7 +79,7 @@ def update_project(
     - Returns a 404 Not Found error if the project does not exist.
     - Returns a 409 Conflict error if the new name is already in use.
     """
-    project = service.edit_project(
+    project = await service.edit_project(
         project_id=project_id,
         new_name=project_in.name,
         new_description=project_in.description,
@@ -88,7 +88,7 @@ def update_project(
 
 
 @router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_project(
+async def delete_project(
     project_id: int, service: ProjectService = Depends(get_project_service)
 ) -> Response:
     """
@@ -98,5 +98,5 @@ def delete_project(
     - Returns a 204 No Content response on success.
     - Returns a 404 Not Found error if the project does not exist.
     """
-    service.delete_project(project_id)
+    await service.delete_project(project_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -1,8 +1,9 @@
 """SQLAlchemy implementation of the project repository."""
 
 from collections.abc import Sequence
-
+from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.app.exceptions.base import EntityDoesNotExistError
 from src.app.models.project import Project
@@ -15,32 +16,36 @@ class SqlAlchemyProjectRepository(IProjectRepository):
     def __init__(self, session: Session):
         self._session = session
 
-    def create_project(self, name: str, description: str) -> Project:
+    async def create_project(self, name: str, description: str) -> Project:
         project = Project(name=name, description=description)
         self._session.add(project)
-        self._session.commit()
-        self._session.refresh(project)
+        await self._session.commit()
+        await self._session.refresh(project, attribute_names=["tasks"])
         return project
 
-    def list_projects(self) -> Sequence[Project]:
-        return self._session.query(Project).options(joinedload(Project.tasks)).order_by(Project.created_at).all()
+    async def list_projects(self) -> Sequence[Project]:
+        stmt = select(Project).options(joinedload(Project.tasks)).order_by(Project.created_at)
+        result = await self._session.execute(stmt)
+        return result.unique().scalars().all()
 
-    def find_project_by_id(self, id: int) -> Project:
-        project = self._session.query(Project).options(joinedload(Project.tasks)).get(id)
+    async def find_project_by_id(self, id: int) -> Project:
+        project = await self._session.get(Project, id, options=[joinedload(Project.tasks)])
         if not project:
             raise EntityDoesNotExistError("Project", id)
         return project
 
-    def find_project_by_name(self, name: str) -> Project | None:
-        return self._session.query(Project).filter(Project.name == name).first()
+    async def find_project_by_name(self, name: str) -> Project | None:
+        stmt = select(Project).where(Project.name == name)
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
 
-    def update_project(self, project: Project, new_name: str, new_description: str) -> Project:
+    async def update_project(self, project: Project, new_name: str, new_description: str) -> Project:
         project.name = new_name
         project.description = new_description
-        self._session.commit()
-        self._session.refresh(project)
+        await self._session.commit()
+        await self._session.refresh(project, attribute_names=["tasks"])
         return project
 
-    def delete_project(self, project: Project) -> None:
-        self._session.delete(project)
-        self._session.commit()
+    async def delete_project(self, project: Project) -> None:
+        await self._session.delete(project)
+        await self._session.commit()

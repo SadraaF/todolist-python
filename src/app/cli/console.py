@@ -6,11 +6,12 @@ the results or errors to the user.
 """
 
 import shlex
+from datetime import datetime, date
 
-from src.app.exceptions.base import TodolistError
+from src.app.exceptions.base import TodolistError, ValidationError
 from src.app.services.project_service import ProjectService
 from src.app.services.task_service import TaskService
-from datetime import datetime
+
 
 class Cli:
     """The command-line interface for the application."""
@@ -44,8 +45,8 @@ class Cli:
             return None
 
     @staticmethod
-    def _parse_deadline(deadline_str: str | None) -> datetime | None:
-        """Parse a deadline string from the CLI into a datetime object."""
+    def _parse_deadline(deadline_str: str | None) -> date | None:
+        """Parse a deadline string from the CLI into a date object."""
         if deadline_str is None:
             return None
         try:
@@ -53,7 +54,7 @@ class Cli:
         except ValueError:
             raise ValidationError("Invalid deadline format. Use YYYY-MM-DD")
 
-    def _display_help(self, args: list[str]) -> None:
+    async def _display_help(self, args: list[str]) -> None:
         """Displays the available commands."""
         print("Available commands:")
         print("  create_project <name> <description>")
@@ -69,23 +70,23 @@ class Cli:
         print("  help")
         print("  exit")
 
-    def _exit(self, args: list[str]) -> None:
+    async def _exit(self, args: list[str]) -> None:
         """Exits the application."""
         raise SystemExit()
 
-    def _create_project(self, args: list[str]) -> None:
+    async def _create_project(self, args: list[str]) -> None:
         """Handles the create_project command."""
         if len(args) != 2:
             print("Invalid number of arguments.")
             return
 
         name, description = args
-        project = self._project_service.create_project(name, description)
+        project = await self._project_service.create_project(name, description)
         print(f"Created project '{project.name}' with ID {project.id}.")
 
-    def _list_projects(self, args: list[str]) -> None:
+    async def _list_projects(self, args: list[str]) -> None:
         """Handles the list_projects command."""
-        projects = self._project_service.get_all_projects()
+        projects = await self._project_service.get_all_projects()
         if not projects:
             print("No projects found.")
             return
@@ -97,7 +98,7 @@ class Cli:
                   f"Description: '{project.description}', "
                   f"Created: {created_date}")
 
-    def _add_task(self, args: list[str]) -> None:
+    async def _add_task(self, args: list[str]) -> None:
         """Handles the add_task command."""
         if not (3 <= len(args) <= 4):
             print("Invalid number of arguments.")
@@ -112,12 +113,12 @@ class Cli:
 
         deadline = self._parse_deadline(deadline_str)
 
-        task = self._task_service.add_task_to_project(project_id, title,
-                                                 description, deadline)
+        task = await self._task_service.add_task_to_project(project_id, title,
+                                                            description, deadline)
 
         print(f"Added task '{task.title}' with ID {task.id}.")
 
-    def _edit_project(self, args: list[str]) -> None:
+    async def _edit_project(self, args: list[str]) -> None:
         """Handles the edit_project command."""
         if len(args) != 3:
             print("Invalid number of arguments.")
@@ -128,10 +129,10 @@ class Cli:
         if project_id is None:
             return
 
-        project = self._project_service.edit_project(project_id, new_name, new_description)
+        project = await self._project_service.edit_project(project_id, new_name, new_description)
         print(f"Edited project '{project.name}' with ID {project.id}.")
 
-    def _delete_project(self, args: list[str]) -> None:
+    async def _delete_project(self, args: list[str]) -> None:
         """Handles the delete_project command."""
         if len(args) != 1:
             print("Invalid number of arguments.")
@@ -142,10 +143,10 @@ class Cli:
         if project_id is None:
             return
 
-        self._project_service.delete_project(project_id)
+        await self._project_service.delete_project(project_id)
         print(f"Deleted project ID {project_id} and all of its tasks.")
 
-    def _set_task_status(self, args: list[str]) -> None:
+    async def _set_task_status(self, args: list[str]) -> None:
         """Handles the set_task_status command."""
         if len(args) != 3:
             print("Invalid number of arguments.")
@@ -158,11 +159,11 @@ class Cli:
         if task_id is None or project_id is None:
             return
 
-        task = self._task_service.change_task_status(project_id, task_id, new_status)
+        task = await self._task_service.change_task_status(project_id, task_id, new_status)
         print(f"Changed status of task '{task.title}' with "
               f"ID {task.id} to '{new_status}'.")
 
-    def _list_tasks(self, args: list[str]) -> None:
+    async def _list_tasks(self, args: list[str]) -> None:
         """Handles the list_tasks command."""
         if len(args) != 1:
             print("Invalid number of arguments.")
@@ -173,7 +174,7 @@ class Cli:
         if project_id is None:
             return
 
-        project = self._project_service.find_project_by_id(project_id)
+        project = await self._project_service.find_project_by_id(project_id)
         print(f"Tasks of project '{project.name}' with ID {project.id}:")
         if not project.tasks:
             print("  No tasks found.")
@@ -186,7 +187,7 @@ class Cli:
             print(f"  - Title: {task.title}, Description: {task.description}")
             print(f"  - Deadline: {deadline_str}")
 
-    def _edit_task(self, args: list[str]) -> None:
+    async def _edit_task(self, args: list[str]) -> None:
         """Handles the edit_task command."""
         if not 5 <= len(args) <= 6:
             print("Invalid number of arguments.")
@@ -203,13 +204,13 @@ class Cli:
 
         new_deadline = self._parse_deadline(new_deadline_str)
 
-        task = self._task_service.edit_task(project_id, task_id, new_title, new_description,
-                                       new_status, new_deadline)
+        task = await self._task_service.edit_task(project_id, task_id, new_title, new_description,
+                                                  new_status, new_deadline)
 
         print(f"Edited task '{task.title}' with ID {task.id} in "
               f"project ID {project_id}.")
 
-    def _delete_task(self, args: list[str]) -> None:
+    async def _delete_task(self, args: list[str]) -> None:
         """Handles the delete_task command."""
         if len(args) != 2:
             print("Invalid number of arguments.")
@@ -222,10 +223,10 @@ class Cli:
         if task_id is None or project_id is None:
             return
 
-        self._task_service.delete_task(project_id, task_id)
+        await self._task_service.delete_task(project_id, task_id)
         print(f"Deleted task with ID {task_id} in project ID {project_id}.")
 
-    def run(self) -> None:
+    async def run(self) -> None:
         """Main loop for the CLI"""
 
         print("\n" + "="*60)
@@ -233,7 +234,7 @@ class Cli:
         print("Please use the new Web API for all operations.")
         print("="*60 + "\n")
 
-        self._display_help([])
+        await self._display_help([])
         while True:
             try:
                 raw_input = input("> ")
@@ -249,7 +250,7 @@ class Cli:
                     print("Invalid command. Type 'help' for a list of commands.")
                     continue
 
-                command(args)
+                await command(args)
 
             except TodolistError as e:
                 print(f"Error: {e}")
