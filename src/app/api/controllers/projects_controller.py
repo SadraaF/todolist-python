@@ -1,8 +1,7 @@
 """API controller for project-related endpoints."""
 
-from collections.abc import Sequence
-
 from fastapi import APIRouter, Depends, Response, status
+
 from src.app.api.dependencies import get_project_service
 from src.app.api.schemas.requests.project_schema import (
     ProjectCreate,

@@ -1,9 +1,9 @@
 """SQLAlchemy implementation of the project repository."""
 
 from collections.abc import Sequence
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.app.exceptions.base import EntityDoesNotExistError
 from src.app.models.project import Project
@@ -38,6 +38,9 @@ class SqlAlchemyProjectRepository(IProjectRepository):
 
         :return: A sequence of all Project objects.
         """
+        # Use joinedload to eagerly load related tasks in a single query.
+        # This prevents the "N+1" problem where accessing each project's tasks
+        # would trigger a separate database query.
         stmt = select(Project).options(joinedload(Project.tasks)).order_by(Project.created_at)
         result = await self._session.execute(stmt)
         return result.unique().scalars().all()
@@ -49,6 +52,7 @@ class SqlAlchemyProjectRepository(IProjectRepository):
         :raises EntityDoesNotExistError: If no project with the given ID exists.
         :return: The found Project object.
         """
+        # Use joinedload to eagerly load the tasks relationship.
         project = await self._session.get(Project, id, options=[joinedload(Project.tasks)])
         if not project:
             raise EntityDoesNotExistError("Project", id)

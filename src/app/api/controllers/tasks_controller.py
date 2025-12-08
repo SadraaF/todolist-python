@@ -1,8 +1,7 @@
 """API controller for task-related endpoints."""
 
-from collections.abc import Sequence
-
 from fastapi import APIRouter, Depends, Response, status
+
 from src.app.api.dependencies import get_project_service, get_task_service
 from src.app.api.schemas.requests.task_schema import (
     TaskCreate,
