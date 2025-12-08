@@ -1,8 +1,8 @@
-"""Command-Line Interface (CLI) for the Todo List application
+"""(DEPRECATED) Command-Line Interface for the Todo List application.
 
-This module provides the user-facing interface for interacting with the application.
-It handles command parsing, calls the appropriate service methods, and displays
-the results or errors to the user.
+This module provides the user-facing interface for interacting with the application
+from the command line. It handles command parsing, calls the appropriate service
+methods, and displays the results or errors to the user.
 """
 
 import shlex
@@ -17,6 +17,11 @@ class Cli:
     """The command-line interface for the application."""
 
     def __init__(self, project_service: ProjectService, task_service: TaskService):
+        """Initialize the CLI with service dependencies.
+
+        :param project_service: The service for project-related business logic.
+        :param task_service: The service for task-related business logic.
+        """
         self._project_service = project_service
         self._task_service = task_service
         self._commands = {
@@ -36,8 +41,14 @@ class Cli:
             "exit": self._exit,
         }
 
+    @staticmethod
     def _parse_id(self, id_str: str, entity_name: str) -> int | None:
-        """Helper function to parse an ID string to an int and handle errors."""
+        """Parse an ID string to an integer, handling potential errors.
+
+        :param id_str: The string representation of the ID.
+        :param entity_name: The name of the entity (e.g., 'Project', 'Task').
+        :return: The integer ID, or None if parsing fails.
+        """
         try:
             return int(id_str)
         except ValueError:
@@ -46,7 +57,12 @@ class Cli:
 
     @staticmethod
     def _parse_deadline(deadline_str: str | None) -> date | None:
-        """Parse a deadline string from the CLI into a date object."""
+        """Parse a deadline string from 'YYYY-MM-DD' format to a date object.
+
+        :param deadline_str: The string containing the deadline.
+        :raises ValidationError: If the date format is invalid.
+        :return: A date object, or None if the input is None.
+        """
         if deadline_str is None:
             return None
         try:
@@ -55,7 +71,10 @@ class Cli:
             raise ValidationError("Invalid deadline format. Use YYYY-MM-DD")
 
     async def _display_help(self, args: list[str]) -> None:
-        """Displays the available commands."""
+        """Display the list of available commands.
+
+        :param args: Command arguments (not used).
+        """
         print("Available commands:")
         print("  create_project <name> <description>")
         print("  add_task <project_id> <title> <description> [deadline:YYYY-MM-DD]")
@@ -71,11 +90,18 @@ class Cli:
         print("  exit")
 
     async def _exit(self, args: list[str]) -> None:
-        """Exits the application."""
+        """Exit the application.
+
+        :param args: Command arguments (not used).
+        :raises SystemExit: To terminate the application loop.
+        """
         raise SystemExit()
 
     async def _create_project(self, args: list[str]) -> None:
-        """Handles the create_project command."""
+        """Handle the 'create_project' command.
+
+        :param args: A list containing the project name and description.
+        """
         if len(args) != 2:
             print("Invalid number of arguments.")
             return
@@ -85,7 +111,10 @@ class Cli:
         print(f"Created project '{project.name}' with ID {project.id}.")
 
     async def _list_projects(self, args: list[str]) -> None:
-        """Handles the list_projects command."""
+        """Handle the 'list_projects' command.
+
+        :param args: Command arguments (not used).
+        """
         projects = await self._project_service.get_all_projects()
         if not projects:
             print("No projects found.")
@@ -99,7 +128,10 @@ class Cli:
                   f"Created: {created_date}")
 
     async def _add_task(self, args: list[str]) -> None:
-        """Handles the add_task command."""
+        """Handle the 'add_task' command.
+
+        :param args: A list containing project ID, title, description, and optional deadline.
+        """
         if not (3 <= len(args) <= 4):
             print("Invalid number of arguments.")
             return
@@ -119,7 +151,10 @@ class Cli:
         print(f"Added task '{task.title}' with ID {task.id}.")
 
     async def _edit_project(self, args: list[str]) -> None:
-        """Handles the edit_project command."""
+        """Handle the 'edit_project' command.
+
+        :param args: A list containing project ID, new name, and new description.
+        """
         if len(args) != 3:
             print("Invalid number of arguments.")
             return
@@ -133,7 +168,10 @@ class Cli:
         print(f"Edited project '{project.name}' with ID {project.id}.")
 
     async def _delete_project(self, args: list[str]) -> None:
-        """Handles the delete_project command."""
+        """Handle the 'delete_project' command.
+
+        :param args: A list containing the project ID to delete.
+        """
         if len(args) != 1:
             print("Invalid number of arguments.")
             return
@@ -147,7 +185,10 @@ class Cli:
         print(f"Deleted project ID {project_id} and all of its tasks.")
 
     async def _set_task_status(self, args: list[str]) -> None:
-        """Handles the set_task_status command."""
+        """Handle the 'set_task_status' command.
+
+        :param args: A list containing project ID, task ID, and new status.
+        """
         if len(args) != 3:
             print("Invalid number of arguments.")
             return
@@ -164,7 +205,10 @@ class Cli:
               f"ID {task.id} to '{new_status}'.")
 
     async def _list_tasks(self, args: list[str]) -> None:
-        """Handles the list_tasks command."""
+        """Handle the 'list_tasks' command for a specific project.
+
+        :param args: A list containing the project ID.
+        """
         if len(args) != 1:
             print("Invalid number of arguments.")
             return
@@ -188,7 +232,10 @@ class Cli:
             print(f"  - Deadline: {deadline_str}")
 
     async def _edit_task(self, args: list[str]) -> None:
-        """Handles the edit_task command."""
+        """Handle the 'edit_task' command.
+
+        :param args: A list with project ID, task ID, new title, new description, new status, and optional new deadline.
+        """
         if not 5 <= len(args) <= 6:
             print("Invalid number of arguments.")
             return
@@ -211,7 +258,10 @@ class Cli:
               f"project ID {project_id}.")
 
     async def _delete_task(self, args: list[str]) -> None:
-        """Handles the delete_task command."""
+        """Handle the 'delete_task' command.
+
+        :param args: A list containing the project ID and task ID.
+        """
         if len(args) != 2:
             print("Invalid number of arguments.")
             return

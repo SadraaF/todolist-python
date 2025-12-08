@@ -1,4 +1,8 @@
-"""Main entry point for the ToDo List API."""
+"""Main entry point for the ToDo List API application.
+
+This module initializes the FastAPI application, registers exception handlers,
+and includes the main API router.
+"""
 
 from fastapi import FastAPI
 
@@ -30,6 +34,9 @@ app.include_router(api_router, prefix="/api/v1")
 
 
 @app.get("/", tags=["Root"])
-def read_root():
-    """A simple root endpoint to confirm the API is running."""
+def read_root() -> dict[str, str]:
+    """A simple root endpoint to confirm the API is running.
+
+    :return: A welcome message.
+    """
     return {"message": "Welcome to the ToDo List API!"}

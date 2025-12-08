@@ -1,4 +1,5 @@
-"""Database session and engine configuration."""
+"""Database session and engine configuration for SQLAlchemy."""
+from typing import Any, AsyncGenerator
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from src.app.core.config import get_settings
@@ -15,7 +16,13 @@ AsyncSessionLocal = async_sessionmaker(
     expire_on_commit=False
 )
 
-async def get_db() -> AsyncSession:
-    """Dependency for getting an async database session for a single request."""
+async def get_db() -> AsyncGenerator[AsyncSession | None]:
+    """FastAPI dependency to get an async database session.
+
+    Yields a session from the session factory and ensures it is closed
+    after the request is finished.
+
+    :yield: An asynchronous database session.
+    """
     async with AsyncSessionLocal() as session:
         yield session

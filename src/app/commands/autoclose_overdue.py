@@ -1,4 +1,9 @@
-"""A command-line script to automatically close overdue tasks."""
+"""A command-line script to automatically close overdue tasks.
+
+This script initializes the necessary services and repositories to find all tasks
+that are past their deadline and not yet marked as 'done', and updates their
+status accordingly. It is intended to be run periodically by a scheduler.
+"""
 import asyncio
 import sys
 from src.app.core.config import get_settings
@@ -10,8 +15,12 @@ from src.app.repositories.sqlalchemy_task_repository import \
 from src.app.services.task_service import TaskService
 
 
-async def autoclose_logic():
-    """The core async logic for the auto-close job."""
+async def autoclose_logic() -> None:
+    """Execute the core logic for the auto-closing job.
+
+    This function sets up a database session and uses the TaskService to
+    find and close all overdue tasks, printing the result to the console.
+    """
     print("Running async job: Auto-closing overdue tasks...")
     settings = get_settings()
 
@@ -35,8 +44,12 @@ async def autoclose_logic():
             print(f"An error occurred during the autoclose job: {e}")
 
 
-def run_autoclose():
-    """Initializes dependencies and runs the auto-closing service logic."""
+def run_autoclose() -> None:
+    """Synchronous entry point to run the auto-closing logic.
+
+    This function sets up the asyncio event loop and runs the main
+    asynchronous logic for the job.
+    """
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 

@@ -19,11 +19,13 @@ router = APIRouter(prefix="/projects", tags=["Projects"])
 async def list_projects(
     service: ProjectService = Depends(get_project_service),
 ) -> dict:
-    """
-    Retrieve a list of all projects.
+    """Retrieve a list of all projects.
 
     Returns a list of all projects in the system, sorted by their creation date.
     If no projects exist, an empty list is returned.
+
+    :param service: The project service dependency.
+    :return: A success response containing a list of projects.
     """
     projects = await service.get_all_projects()
     return {"data": projects}
@@ -38,13 +40,16 @@ async def create_project(
     project_in: ProjectCreate,
     service: ProjectService = Depends(get_project_service),
 ) -> dict:
-    """
-    Create a new project.
+    """Create a new project.
 
     - A project name must be unique.
     - The name must be between 1 and 30 characters.
     - The description must be 150 characters or less.
     - Returns a 409 Conflict error if the project name already exists.
+
+    :param project_in: The request body containing project details.
+    :param service: The project service dependency.
+    :return: A success response containing the newly created project.
     """
     project = await service.create_project(
         name=project_in.name, description=project_in.description
@@ -56,11 +61,12 @@ async def create_project(
 async def get_project(
     project_id: int, service: ProjectService = Depends(get_project_service)
 ) -> dict:
-    """
-    Retrieve a single project by its ID.
+    """Retrieve a single project by its ID.
 
-    - project_id: The integer ID of the project to retrieve.
-    - Returns a 404 Not Found error if the project does not exist.
+    :param project_id: The integer ID of the project to retrieve.
+    :raises EntityDoesNotExistError: If the project does not exist (404).
+    :param service: The project service dependency.
+    :return: A success response containing the requested project.
     """
     project = await service.find_project_by_id(project_id)
     return {"data": project}
@@ -72,12 +78,16 @@ async def update_project(
     project_in: ProjectUpdate,
     service: ProjectService = Depends(get_project_service),
 ) -> dict:
-    """
-    Update an existing project's name and description.
+    """Update an existing project's name and description.
 
     - The new name must not conflict with another existing project.
-    - Returns a 404 Not Found error if the project does not exist.
-    - Returns a 409 Conflict error if the new name is already in use.
+
+    :param project_id: The ID of the project to update.
+    :param project_in: The request body with the new project details.
+    :raises EntityDoesNotExistError: If the project does not exist (404).
+    :raises DuplicateProjectNameError: If the new name is already in use (409).
+    :param service: The project service dependency.
+    :return: A success response containing the updated project.
     """
     project = await service.edit_project(
         project_id=project_id,
@@ -91,12 +101,14 @@ async def update_project(
 async def delete_project(
     project_id: int, service: ProjectService = Depends(get_project_service)
 ) -> Response:
-    """
-    Delete a project and all of its associated tasks.
+    """Delete a project and all of its associated tasks.
 
-    - This action performs a cascade delete on all tasks within the project.
-    - Returns a 204 No Content response on success.
-    - Returns a 404 Not Found error if the project does not exist.
+    This action performs a cascade delete on all tasks within the project.
+
+    :param project_id: The ID of the project to delete.
+    :raises EntityDoesNotExistError: If the project does not exist (404).
+    :param service: The project service dependency.
+    :return: An empty response with a 204 status code on success.
     """
     await service.delete_project(project_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
