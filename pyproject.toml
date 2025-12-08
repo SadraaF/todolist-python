@@ -11,7 +11,7 @@ requires-python = ">=3.12"
 dependencies = [
     "python-dotenv (>=1.1.1,<2.0.0)",
     "sqlalchemy (>=2.0.44,<3.0.0)",
-    "psycopg2-binary (>=2.9.11,<3.0.0)",
+    "psycopg[binary] (>=3.1.0,<4.0.0)", 
     "alembic (>=1.17.1,<2.0.0)",
     "schedule (>=1.2.2,<2.0.0)",
     "fastapi (>=0.122.0,<0.123.0)",
@@ -23,3 +23,8 @@ dependencies = [
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "psycopg2-binary (>=2.9.11,<3.0.0)"
+]

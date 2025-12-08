@@ -1,27 +1,60 @@
-"""A command-line script to automatically close overdue tasks."""
+"""A command-line script to automatically close overdue tasks.
+
+This script initializes the necessary services and repositories to find all tasks
+that are past their deadline and not yet marked as 'done', and updates their
+status accordingly. It is intended to be run periodically by a scheduler.
+"""
+import asyncio
+import sys
+
 from src.app.core.config import get_settings
-from src.app.db.session import SessionLocal
-from src.app.repositories.sqlalchemy_repository import SqlAlchemyProjectRepository
-from src.app.services.project_service import ProjectService
+from src.app.db.session import AsyncSessionLocal
+from src.app.repositories.sqlalchemy_project_repository import \
+    SqlAlchemyProjectRepository
+from src.app.repositories.sqlalchemy_task_repository import \
+    SqlAlchemyTaskRepository
+from src.app.services.task_service import TaskService
 
 
-def run_autoclose():
-    """Initializes dependencies and runs the auto-closing service logic."""
-    print("Running job: Auto-closing overdue tasks...")
+async def autoclose_logic() -> None:
+    """Execute the core logic for the auto-closing job.
+
+    This function sets up a database session and uses the TaskService to
+    find and close all overdue tasks, printing the result to the console.
+    """
+    print("Running async job: Auto-closing overdue tasks...")
     settings = get_settings()
 
-    db_session = SessionLocal()
-    try:
-        repo = SqlAlchemyProjectRepository(session=db_session)
-        service = ProjectService(
-            repo,
-            max_projects=settings.MAX_NUMBER_OF_PROJECT,
-            max_tasks=settings.MAX_NUMBER_OF_TASK
-        )
-        closed_count = service.autoclose_overdue_tasks()
-        print(f"Successfully closed {closed_count} overdue tasks.")
-    finally:
-        db_session.close()
+    async with AsyncSessionLocal() as db_session:
+        try:
+            # Instantiate repositories with the async session
+            project_repo = SqlAlchemyProjectRepository(session=db_session)
+            task_repo = SqlAlchemyTaskRepository(session=db_session)
+
+            # Initialize the service with its dependencies
+            service = TaskService(
+                task_repo=task_repo,
+                project_repo=project_repo,
+                max_tasks=settings.MAX_NUMBER_OF_TASK
+            )
+
+            # Await the service call
+            closed_count = await service.autoclose_overdue_tasks()
+            print(f"Successfully closed {closed_count} overdue tasks.")
+        except Exception as e:
+            print(f"An error occurred during the autoclose job: {e}")
+
+
+def run_autoclose() -> None:
+    """Synchronous entry point to run the auto-closing logic.
+
+    This function sets up the asyncio event loop and runs the main
+    asynchronous logic for the job.
+    """
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+    asyncio.run(autoclose_logic())
 
 
 if __name__ == "__main__":

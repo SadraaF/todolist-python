@@ -1,16 +1,22 @@
-"""Main entry point for the ToDo List API."""
+"""Main entry point for the ToDo List API application.
+
+This module initializes the FastAPI application, registers exception handlers,
+and includes the main API router.
+"""
 
 from fastapi import FastAPI
-from src.app.api.exception_handlers import validation_exception_handler
+
 from src.app.api.exception_handlers import (
-    entity_not_found_exception_handler,  
+    entity_not_found_exception_handler,
     validation_exception_handler,
 )
+from src.app.api.routers import api_router
 from src.app.exceptions.base import (
-    EntityDoesNotExistError,  
+    EntityDoesNotExistError,
+    ProjectLimitExceededError,  
+    TaskLimitExceededError,
     ValidationError,
 )
-from src.app.api.controllers import projects_controller, tasks_controller
 
 app = FastAPI(
     title="ToDo List API",
@@ -21,10 +27,16 @@ app = FastAPI(
 app.add_exception_handler(ValidationError, validation_exception_handler)
 app.add_exception_handler(EntityDoesNotExistError, entity_not_found_exception_handler)
 
-app.include_router(projects_controller.router, prefix="/api/v1")
-app.include_router(tasks_controller.router, prefix="/api/v1")
+app.add_exception_handler(ProjectLimitExceededError, validation_exception_handler)
+app.add_exception_handler(TaskLimitExceededError, validation_exception_handler)
+
+app.include_router(api_router, prefix="/api/v1")
+
 
 @app.get("/", tags=["Root"])
-def read_root():
-    """A simple root endpoint to confirm the API is running."""
+def read_root() -> dict[str, str]:
+    """A simple root endpoint to confirm the API is running.
+
+    :return: A welcome message.
+    """
     return {"message": "Welcome to the ToDo List API!"}
