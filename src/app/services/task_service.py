@@ -42,7 +42,16 @@ class TaskService:
             raise ValidationError("Task status must be either 'todo', 'doing' or 'done'.")
 
         new_status: TaskStatus = new_status_str
-        return await self._task_repo.update_task_status(task, new_status)
+
+        new_closed_at = task.closed_at
+        if new_status == "done" and task.status != "done":
+            new_closed_at = datetime.now()
+        elif new_status != "done" and task.status == "done":
+            new_closed_at = None
+
+        return await self._task_repo.update_task(
+            task, task.title, task.description, new_status, task.deadline, new_closed_at
+        )
 
     async def edit_task(self, project_id: int, task_id: int, new_title: str,
                         new_description: str | None, new_status_str: str,
@@ -60,8 +69,14 @@ class TaskService:
 
         new_status: TaskStatus = new_status_str
 
+        new_closed_at = task.closed_at
+        if new_status == "done" and task.status != "done":
+            new_closed_at = datetime.now()
+        elif new_status != "done" and task.status == "done":
+            new_closed_at = None
+
         return await self._task_repo.update_task(
-            task, new_title, new_description, new_status, new_deadline, new_closed_at=None
+            task, new_title, new_description, new_status, new_deadline, new_closed_at
         )
 
     async def delete_task(self, project_id: int, task_id: int) -> None:
