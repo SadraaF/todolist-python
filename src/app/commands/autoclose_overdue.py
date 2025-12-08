@@ -1,6 +1,6 @@
 """A command-line script to automatically close overdue tasks."""
 import asyncio
-
+import sys
 from src.app.core.config import get_settings
 from src.app.db.session import AsyncSessionLocal
 from src.app.repositories.sqlalchemy_project_repository import \
