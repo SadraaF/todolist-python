@@ -2,9 +2,10 @@
 
 from collections.abc import Sequence
 from datetime import datetime
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
+
 from src.app.exceptions.base import EntityDoesNotExistError
 from src.app.models.task import Task, TaskStatus
 from .task_repository import ITaskRepository
