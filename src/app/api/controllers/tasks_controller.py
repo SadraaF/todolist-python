@@ -21,10 +21,12 @@ router = APIRouter(prefix="/projects/{project_id}/tasks", tags=["Tasks"])
 async def list_tasks_for_project(
     project_id: int, project_service: ProjectService = Depends(get_project_service)
 ) -> dict:
-    """
-    Retrieve all tasks for a specific project.
+    """Retrieve all tasks for a specific project.
 
-    - A 404 Not Found error is returned if the project does not exist.
+    :param project_id: The ID of the project whose tasks are to be listed.
+    :raises EntityDoesNotExistError: If the project does not exist (404).
+    :param project_service: The project service dependency.
+    :return: A success response containing a list of tasks for the project.
     """
     project = await project_service.find_project_by_id(project_id)
     return {"data": project.tasks}
@@ -40,11 +42,15 @@ async def create_task_for_project(
     task_in: TaskCreate,
     task_service: TaskService = Depends(get_task_service),
 ) -> dict:
-    """
-    Create a new task within a specific project.
+    """Create a new task within a specific project.
 
     - The task title must be between 1 and 30 characters.
-    - A 404 Not Found error is returned if the project does not exist.
+
+    :param project_id: The ID of the project to add the task to.
+    :param task_in: The request body containing the new task's details.
+    :raises EntityDoesNotExistError: If the project does not exist (404).
+    :param task_service: The task service dependency.
+    :return: A success response containing the newly created task.
     """
 
     task = await task_service.add_task_to_project(
@@ -63,11 +69,16 @@ async def update_task(
     task_in: TaskUpdate,
     task_service: TaskService = Depends(get_task_service),
 ) -> dict:
-    """
-    Update an existing task's details.
+    """Update an existing task's details (full update).
 
-    - All fields (title, description, status, deadline) must be provided in the request.
-    - A 404 Not Found error is returned if the project or task does not exist.
+    All fields (title, description, status, deadline) must be provided.
+
+    :param project_id: The ID of the parent project.
+    :param task_id: The ID of the task to update.
+    :param task_in: The request body with the full new task details.
+    :raises EntityDoesNotExistError: If the project or task does not exist (404).
+    :param task_service: The task service dependency.
+    :return: A success response containing the updated task.
     """
 
     task = await task_service.edit_task(
@@ -88,11 +99,16 @@ async def update_task_status(
     task_in: TaskStatusUpdate,
     task_service: TaskService = Depends(get_task_service),
 ) -> dict:
-    """
-    Partially update a task to change its status.
+    """Partially update a task to change its status.
 
-    - Valid statuses are 'todo', 'doing', or 'done'.
-    - A 404 Not Found error is returned if the project or task does not exist.
+    Valid statuses are 'todo', 'doing', or 'done'.
+
+    :param project_id: The ID of the parent project.
+    :param task_id: The ID of the task whose status is to be updated.
+    :param task_in: The request body containing the new status.
+    :raises EntityDoesNotExistError: If the project or task does not exist (404).
+    :param task_service: The task service dependency.
+    :return: A success response containing the updated task.
     """
     task = await task_service.change_task_status(
         project_id=project_id, task_id=task_id, new_status_str=task_in.status
@@ -106,11 +122,13 @@ async def delete_task(
     task_id: int,
     task_service: TaskService = Depends(get_task_service),
 ) -> Response:
-    """
-    Delete a specific task from a project.
+    """Delete a specific task from a project.
 
-    - Returns a 204 No Content response on success.
-    - A 404 Not Found error is returned if the project or task does not exist.
+    :param project_id: The ID of the parent project.
+    :param task_id: The ID of the task to delete.
+    :raises EntityDoesNotExistError: If the project or task does not exist (404).
+    :param task_service: The task service dependency.
+    :return: An empty response with a 204 status code on success.
     """
     await task_service.delete_task(project_id=project_id, task_id=task_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

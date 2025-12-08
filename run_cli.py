@@ -1,7 +1,8 @@
-"""Main entry point for the ToDo List application.
+"""(DEPRECATED) Main entry point for the ToDo List CLI.
 
-This file initializes all the necessary components (repository, service, CLI) and starts
-the application's CLI. It is the root of the application.
+This file initializes all the necessary components (repository, service, CLI)
+and starts the application's command-line interface. It is the root of the
+deprecated application.
 """
 
 import asyncio
@@ -22,7 +23,7 @@ from src.app.services.task_service import TaskService
 
 
 async def main_async() -> None:
-    """Sets up dependencies and runs the CLI's async main loop."""
+    """Sets up asynchronous dependencies and runs the CLI's main loop."""
     load_dotenv()
 
     settings = get_settings()
@@ -31,23 +32,22 @@ async def main_async() -> None:
 
     # Asynchronously create a new database session
     async with AsyncSessionLocal() as db_session:
-        # Instantiate repositories with the async session
         project_repo = SqlAlchemyProjectRepository(session=db_session)
         task_repo = SqlAlchemyTaskRepository(session=db_session)
 
-        # Instantiate services with their repository dependencies
         project_service = ProjectService(project_repo, max_projects)
         task_service = TaskService(task_repo, project_repo, max_tasks)
 
-        # The Cli class will be updated to have async methods
         cli = Cli(project_service, task_service)
 
-        # Await the main run loop of the CLI
         await cli.run()
 
 
 def main() -> None:
-    """Run the application."""
+    """Synchronous entry point that runs the async main function.
+
+    Handles setting the correct asyncio event loop policy for Windows.
+    """
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 

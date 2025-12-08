@@ -14,7 +14,14 @@ from src.app.services.task_service import TaskService
 
 
 def get_project_service(db: Session = Depends(get_db)) -> ProjectService:
-    """Dependency injector for the ProjectService."""
+    """Create and return an instance of ProjectService.
+
+    This function is a dependency provider for FastAPI, injecting a ProjectService
+    instance into endpoint functions.
+
+    :param db: The database session dependency.
+    :return: An instance of ProjectService.
+    """
     settings = get_settings()
     repo = SqlAlchemyProjectRepository(session=db)
     return ProjectService(
@@ -24,7 +31,14 @@ def get_project_service(db: Session = Depends(get_db)) -> ProjectService:
 
 
 def get_task_service(db: Session = Depends(get_db)) -> TaskService:
-    """Dependency injector for the TaskService."""
+    """Create and return an instance of TaskService.
+
+    This function is a dependency provider for FastAPI, injecting a TaskService
+    instance into endpoint functions.
+
+    :param db: The database session dependency.
+    :return: An instance of TaskService.
+    """
     settings = get_settings()
     project_repo = SqlAlchemyProjectRepository(session=db)
     task_repo = SqlAlchemyTaskRepository(session=db)
