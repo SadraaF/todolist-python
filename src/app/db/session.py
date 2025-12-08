@@ -17,7 +17,7 @@ AsyncSessionLocal = async_sessionmaker(
     expire_on_commit=False
 )
 
-async def get_db() -> AsyncGenerator[AsyncSession | None]:
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """FastAPI dependency to get an async database session.
 
     Yields a session from the session factory and ensures it is closed
